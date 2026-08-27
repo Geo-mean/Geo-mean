@@ -57,6 +57,9 @@ If you want to use Geo-mean as a Python module or modify its source code, you wi
 pandas
 numpy
 matplotlib
+tksheet
+openpyxl
+Pillow
 ```
 
 Install the dependencies with:
