@@ -1,5 +1,6 @@
-   pandas
-   numpy
-   matplotlib
-   tksheet
-   openpyxl
+pandas
+numpy
+matplotlib
+tksheet
+openpyxl
+Pillow
