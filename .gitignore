@@ -1,0 +1,8 @@
+﻿__pycache__/
+*.pyc
+.idea/
+.pytest_cache/
+venv/
+*.xlsx
+*.xls
+*.csv

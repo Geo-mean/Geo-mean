@@ -377,39 +377,12 @@ class ModernExcelAnalyzerGUI:
             analysis_menu.add_command(label="Moving Average Analysis", command=self.run_moving_window_analysis)
             if BOOTSTRAP_MEDIAN_WINDOW_AVAILABLE:
                 analysis_menu.add_command(label="Bootstrap Median Window", command=self.run_bootstrap_median_window_analysis)
-
-            # Data Export 直接作为菜单栏按钮
-            menubar.add_command(label="Data Export", command=self.open_export_dialog)
-
-            # About 直接作为菜单栏按钮
-            menubar.add_command(label="About", command=self._show_about_dialog)
-
-        except Exception as e:
-            print(f"[ERROR] Menu setup failed: {e}")
-        """设置菜单栏"""
-        try:
-            menubar = tk.Menu(self.root)
-            self.root.config(menu=menubar)
-
-            # File 菜单
-            file_menu = tk.Menu(menubar, tearoff=0)
-            menubar.add_cascade(label="File", menu=file_menu)
-            file_menu.add_command(label="Browse", command=self.select_file)
-
-            # Process 菜单
-            process_menu = tk.Menu(menubar, tearoff=0)
-            menubar.add_cascade(label="Process", menu=process_menu)
-            process_menu.add_command(label="Outlier Elimination", command=self.open_outlier_removal_dialog)
-            process_menu.add_command(label="Outlier Elimination for X-intervals", command=self.open_segmented_outlier_dialog)
-            process_menu.add_command(label="Conditional Filtering", command=self.open_filter_conditions_dialog)
-            process_menu.add_command(label="Geographic Gridding", command=self.open_geo_aggregation_dialog)
-
-            # Analysis 菜单
-            analysis_menu = tk.Menu(menubar, tearoff=0)
-            menubar.add_cascade(label="Analysis", menu=analysis_menu)
-            analysis_menu.add_command(label="Moving Average Analysis", command=self.run_moving_window_analysis)
-            if BOOTSTRAP_MEDIAN_WINDOW_AVAILABLE:
-                analysis_menu.add_command(label="Bootstrap Median Window", command=self.run_bootstrap_median_window_analysis)
+            try:
+                from geochemistry.lowess_integration import LOWESS_AVAILABLE, run_lowess_analysis
+                if LOWESS_AVAILABLE:
+                    analysis_menu.add_command(label="LOWESS Curve", command=lambda: run_lowess_analysis(self))
+            except ImportError as e:
+                print(f"[WARNING] LOWESS module unavailable: {e}")
 
             # Data Export 直接作为菜单栏按钮
             menubar.add_command(label="Data Export", command=self.open_export_dialog)
