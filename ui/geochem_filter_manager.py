@@ -82,7 +82,7 @@ class GeochemFilterManager:
             filtered_data = self._apply_simple_filters(source_data, filters)
 
             if filtered_data is not None:
-                operation_name = f"Data Filtering ({len(filters)} conditions)"
+                operation_name = f"Conditional Filtering ({len(filters)} conditions)"
 
                 # Update data
                 success = self._update_data_consistently(filtered_data, operation_name, filters)
