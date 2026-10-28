@@ -18,6 +18,11 @@ class GlobalDataManager:
         self.data_metadata = {}  # 数据元信息
         self._listeners = []  # 数据变化监听器
 
+        # 撤销/重做：每一步保存操作前的数据快照
+        self.max_undo_steps = 20  # 最多保留的步数，防止大数据集占用过多内存
+        self._undo_stack = []  # [(DataFrame 快照, 操作名称), ...]
+        self._redo_stack = []
+
     def set_original_data(self, data, file_path="", source_info=""):
         """设置原始数据 - 只在文件加载时调用"""
         try:
@@ -27,6 +32,10 @@ class GlobalDataManager:
 
             self.original_data = data.copy()
             self.current_data = data.copy()  # 当前数据初始化为原始数据
+
+            # 加载新文件时清空撤销/重做记录
+            self._undo_stack.clear()
+            self._redo_stack.clear()
 
             # 重置处理历史
             self.processing_history = [{
@@ -58,8 +67,12 @@ class GlobalDataManager:
             print(f"[ERROR] 设置原始数据失败: {e}")
             return False
 
-    def update_current_data(self, new_data, operation_name, metadata=None):
-        """更新当前处理后的数据 - 所有数据处理操作都应该调用这个方法"""
+    def update_current_data(self, new_data, operation_name, metadata=None, undoable=True):
+        """更新当前处理后的数据 - 所有数据处理操作都应该调用这个方法
+
+        undoable: 为 True 时记录操作前的数据，这一步可以撤销。
+                  加载文件后的同步等非用户操作应传 False。
+        """
         try:
             if new_data is None:
                 print(f"[WARNING] 尝试更新为空数据: {operation_name}")
@@ -72,6 +85,12 @@ class GlobalDataManager:
 
             # 更新当前数据
             old_data = self.current_data.copy() if self.current_data is not None else None
+
+            # 记录撤销快照：数据确实发生变化时才记录
+            if undoable and old_data is not None and not old_data.equals(new_data):
+                self._push_undo(old_data, operation_name)
+                self._redo_stack.clear()  # 新操作之后，之前撤销掉的步骤不能再重做
+
             self.current_data = new_data.copy()
 
             # 记录处理历史
@@ -137,6 +156,11 @@ class GlobalDataManager:
                 print("[WARNING] 没有原始数据可以重置")
                 return False
 
+            # 重置本身也可以撤销
+            if self.current_data is not None and not self.current_data.equals(self.original_data):
+                self._push_undo(self.current_data.copy(), 'Reset to Original Data')
+                self._redo_stack.clear()
+
             self.current_data = self.original_data.copy()
 
             # 添加重置记录
@@ -165,6 +189,79 @@ class GlobalDataManager:
         except Exception as e:
             print(f"[ERROR] 重置到原始数据失败: {e}")
             return False
+
+    # ------------------------------------------------------------------
+    # 撤销 / 重做
+    # ------------------------------------------------------------------
+    def _push_undo(self, snapshot, operation_name):
+        """压入一条撤销记录，超出上限时丢弃最早的一条"""
+        self._undo_stack.append((snapshot, operation_name))
+        if len(self._undo_stack) > self.max_undo_steps:
+            self._undo_stack.pop(0)
+
+    def can_undo(self):
+        return len(self._undo_stack) > 0
+
+    def can_redo(self):
+        return len(self._redo_stack) > 0
+
+    def get_undo_operation_name(self):
+        """下一次撤销会撤掉的操作名称（用于菜单显示），没有则返回 None"""
+        return self._undo_stack[-1][1] if self._undo_stack else None
+
+    def get_redo_operation_name(self):
+        return self._redo_stack[-1][1] if self._redo_stack else None
+
+    def undo(self):
+        """撤销上一步数据处理操作，成功返回被撤销的操作名称，失败返回 None"""
+        try:
+            if not self._undo_stack:
+                print("[WARNING] 没有可以撤销的操作")
+                return None
+
+            snapshot, operation_name = self._undo_stack.pop()
+            self._redo_stack.append((self.current_data.copy(), operation_name))
+            self._restore_snapshot(snapshot, f"Undo: {operation_name}")
+            self._notify_listeners('data_undo', self.current_data)
+            return operation_name
+
+        except Exception as e:
+            print(f"[ERROR] 撤销失败: {e}")
+            return None
+
+    def redo(self):
+        """重做上一步被撤销的操作，成功返回操作名称，失败返回 None"""
+        try:
+            if not self._redo_stack:
+                print("[WARNING] 没有可以重做的操作")
+                return None
+
+            snapshot, operation_name = self._redo_stack.pop()
+            self._push_undo(self.current_data.copy(), operation_name)
+            self._restore_snapshot(snapshot, f"Redo: {operation_name}")
+            self._notify_listeners('data_redo', self.current_data)
+            return operation_name
+
+        except Exception as e:
+            print(f"[ERROR] 重做失败: {e}")
+            return None
+
+    def _restore_snapshot(self, snapshot, history_label):
+        """把当前数据换成快照，并记录处理历史、更新元信息"""
+        self.current_data = snapshot.copy()
+        self.processing_history.append({
+            'timestamp': datetime.now(),
+            'operation': history_label,
+            'data_shape': snapshot.shape,
+            'rows_changed': 0
+        })
+        self.data_metadata.update({
+            'current_rows': len(snapshot),
+            'current_columns': len(snapshot.columns),
+            'last_modified': datetime.now(),
+            'last_operation': history_label
+        })
+        print(f"[DEBUG-GLOBAL] {history_label} -> {len(snapshot)} 行")
 
     def get_processing_status(self):
         """获取处理状态信息"""

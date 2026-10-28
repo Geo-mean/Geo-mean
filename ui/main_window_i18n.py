@@ -227,11 +227,17 @@ class ModernExcelAnalyzerGUI:
             if hasattr(self, 'state_manager') and self.state_manager is not None and data is not None:
                 self.state_manager.update_state("data_updated", info={'rows': len(data)})
 
+            # 刷新 Edit 菜单里撤销/重做的可用状态
+            self._refresh_undo_menu_state()
+
         except Exception as e:
             print(f"[ERROR] 处理全局数据变化失败: {e}")
 
-    def _update_data_consistently(self, new_data, operation_name="数据更新"):
-        """统一更新数据的方法 - 现在通过全局数据管理器"""
+    def _update_data_consistently(self, new_data, operation_name="数据更新", undoable=True):
+        """统一更新数据的方法 - 现在通过全局数据管理器
+
+        undoable: 为 True 时这一步可以用 Edit → Undo 撤销
+        """
         try:
             print(f"[DEBUG-INTEGRATION] 统一数据更新: {operation_name}")
 
@@ -239,7 +245,8 @@ class ModernExcelAnalyzerGUI:
             success = self.global_data_manager.update_current_data(
                 new_data,
                 operation_name,
-                metadata={'source': 'main_window'}
+                metadata={'source': 'main_window'},
+                undoable=undoable
             )
 
             if not success:
@@ -362,6 +369,9 @@ class ModernExcelAnalyzerGUI:
             file_menu = tk.Menu(menubar, tearoff=0)
             menubar.add_cascade(label="File", menu=file_menu)
             file_menu.add_command(label="Browse", command=self.select_file)
+
+            # Edit 菜单：撤销 / 重做 / 重置
+            self._add_edit_menu(menubar)
 
             # Process 菜单
             process_menu = tk.Menu(menubar, tearoff=0)
@@ -942,12 +952,12 @@ class ModernExcelAnalyzerGUI:
             if 'parameters' in stats and 'coord_description' in stats['parameters']:
                 coord_desc = stats['parameters']['coord_description']
                 age_desc = stats['parameters']['age_description']
-                operation_name = f"简单地理聚合 ({coord_desc} + {age_desc})"
+                operation_name = f"Geographic Gridding ({coord_desc} + {age_desc})"
             else:
                 # 备用操作名称
                 coord_agg = stats.get('coord_aggregation', 'unknown')
                 age_agg = stats.get('age_aggregation', 'unknown')
-                operation_name = f"简单地理聚合 (经纬度:{coord_agg}, 年龄:{age_agg})"
+                operation_name = f"Geographic Gridding (coordinates: {coord_agg}, age: {age_agg})"
 
             # 通过全局数据管理器统一更新数据
             self._update_data_consistently(aggregated_data, operation_name)
@@ -1067,7 +1077,7 @@ class ModernExcelAnalyzerGUI:
                 raise ValueError("Aggregated data is empty")
 
             # Consistently update data through global data manager
-            operation_name = f"Geographic Data Aggregation ({method} - {group_column})"
+            operation_name = f"Geographic Gridding ({method} - {group_column})"
             self._update_data_consistently(aggregated_data, operation_name)
 
             # Use update method that preserves column selection
@@ -1274,7 +1284,7 @@ class ModernExcelAnalyzerGUI:
             print(f"[DEBUG] All columns retained: {list(final_data.columns)}")
 
             # Core modification: Consistently update data through global data manager
-            operation_name = f"Segmented Outlier Processing ({processing_method} - {target_column}, {segments_processed} segments)"
+            operation_name = f"Outlier Elimination for X-intervals ({processing_method} - {target_column}, {segments_processed} segments)"
             self._update_data_consistently(final_data, operation_name)
 
             # Calculate processing statistics
@@ -1549,7 +1559,7 @@ class ModernExcelAnalyzerGUI:
             )
 
             # 原有逻辑保持不变
-            self._update_data_consistently(self.data_processor.data)
+            self._update_data_consistently(self.data_processor.data, "Load Data", undoable=False)
             self.file_path = self.data_processor.file_path
 
             if safe_check_dataframe(self.data):
@@ -1759,7 +1769,7 @@ class ModernExcelAnalyzerGUI:
                 print(f"[DEBUG-OUTLIER-DIRECT] Target column {target_col} valid data: {valid_count}")
 
             # Core modification: Consistently update data through global data manager
-            operation_name = f"Outlier Removal ({params['method']} - {params['column']})"
+            operation_name = f"Outlier Elimination ({params['method']} - {params['column']})"
             self._update_data_consistently(processed_data, operation_name)
 
             current_rows = len(processed_data)
@@ -4740,7 +4750,7 @@ class ModernExcelAnalyzerGUI:
             print(f"[DEBUG] 聚合统计: {stats['original_count']} -> {stats['aggregated_count']} 行")
 
             # 6. 更新全局数据管理器
-            operation_name = f"地理数据聚合 ({method} - {group_column})"
+            operation_name = f"Geographic Gridding ({method} - {group_column})"
             success = self.global_data_manager.update_current_data(
                 aggregated_data,
                 operation_name,
@@ -4797,6 +4807,106 @@ class ModernExcelAnalyzerGUI:
 
             from tkinter import messagebox
             messagebox.showerror("错误", error_msg)
+
+    # ------------------------------------------------------------------
+    # 撤销 / 重做
+    # ------------------------------------------------------------------
+    def _add_edit_menu(self, menubar):
+        """在菜单栏添加 Edit 菜单，并绑定快捷键"""
+        self.edit_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Edit", menu=self.edit_menu)
+        accel = "Command" if self.root.tk.call('tk', 'windowingsystem') == 'aqua' else "Ctrl"
+        self.edit_menu.add_command(label="Undo", accelerator=f"{accel}+Z", command=self.undo_last_operation)
+        self.edit_menu.add_command(label="Redo", accelerator=f"{accel}+Y", command=self.redo_last_operation)
+        self.edit_menu.add_separator()
+        self.edit_menu.add_command(label="Reset to Original Data", command=self.reset_to_original_data)
+
+        # 快捷键只绑定一次（setup_menu 里可能会重复构建菜单）
+        if not getattr(self, '_undo_keys_bound', False):
+            for seq in ('<Control-z>', '<Control-Z>', '<Command-z>'):
+                try:
+                    self.root.bind_all(seq, lambda e: self._on_undo_key(e, redo=False))
+                except tk.TclError:
+                    pass
+            for seq in ('<Control-y>', '<Control-Y>', '<Control-Shift-Z>', '<Command-Shift-z>'):
+                try:
+                    self.root.bind_all(seq, lambda e: self._on_undo_key(e, redo=True))
+                except tk.TclError:
+                    pass
+            self._undo_keys_bound = True
+
+        self._refresh_undo_menu_state()
+
+    def _on_undo_key(self, event, redo=False):
+        """快捷键处理：光标在输入框里时不撤销数据，避免输入参数时误按 Ctrl+Z 把数据退回"""
+        try:
+            if event.widget.winfo_class() in ('Entry', 'TEntry', 'Text', 'Spinbox', 'TSpinbox', 'TCombobox'):
+                return None
+        except Exception:
+            pass
+        if redo:
+            self.redo_last_operation()
+        else:
+            self.undo_last_operation()
+        return "break"
+
+    def _refresh_undo_menu_state(self):
+        """根据撤销/重做栈更新菜单文字和可用状态，例如 'Undo: Outlier Removal (...)'"""
+        try:
+            menu = getattr(self, 'edit_menu', None)
+            gdm = getattr(self, 'global_data_manager', None)
+            if menu is None or gdm is None:
+                return
+
+            def short(name, limit=40):
+                return name if len(name) <= limit else name[:limit - 1] + "…"
+
+            undo_name = gdm.get_undo_operation_name()
+            redo_name = gdm.get_redo_operation_name()
+            menu.entryconfig(0, label=f"Undo: {short(undo_name)}" if undo_name else "Undo",
+                             state=tk.NORMAL if undo_name else tk.DISABLED)
+            menu.entryconfig(1, label=f"Redo: {short(redo_name)}" if redo_name else "Redo",
+                             state=tk.NORMAL if redo_name else tk.DISABLED)
+        except Exception as e:
+            print(f"[WARNING] 刷新撤销菜单失败: {e}")
+
+    def undo_last_operation(self):
+        """撤销上一步数据处理"""
+        if not self.global_data_manager.can_undo():
+            if hasattr(self, 'update_status_bar'):
+                self.update_status_bar("No operation to undo")
+            return
+        name = self.global_data_manager.undo()
+        if name:
+            self._refresh_after_data_restore(f"Undone: {name}")
+
+    def redo_last_operation(self):
+        """重做上一步被撤销的处理"""
+        if not self.global_data_manager.can_redo():
+            if hasattr(self, 'update_status_bar'):
+                self.update_status_bar("No operation to redo")
+            return
+        name = self.global_data_manager.redo()
+        if name:
+            self._refresh_after_data_restore(f"Redone: {name}")
+
+    def _refresh_after_data_restore(self, status_text):
+        """撤销/重做后刷新界面：数据接口、列选择器、预览表格、状态栏"""
+        try:
+            data = self.global_data_manager.get_current_data()
+            if data is None:
+                return
+            if hasattr(self, 'data_manager'):
+                self.data_manager.update_data_interface_after_load()
+            if hasattr(self, 'update_column_selectors'):
+                self.update_column_selectors(list(data.columns),
+                                             list(data.select_dtypes(include=['number']).columns))
+            self.refresh_data_table(data)
+            if hasattr(self, 'update_status_bar'):
+                self.update_status_bar(f"{status_text} ({len(data)} rows)")
+            self._refresh_undo_menu_state()
+        except Exception as e:
+            print(f"[ERROR] 撤销/重做后刷新界面失败: {e}")
 
     def reset_to_original_data(self):
         """重置到原始数据 - 集成到你的主窗口"""
