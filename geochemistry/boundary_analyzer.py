@@ -59,9 +59,9 @@ class BoundaryAnalyzer:
                     target_col = params.get('target_column') or params.get('target_col')
 
                     if not age_col:
-                        raise ValueError("缺少年龄列参数 (age_column 或 age_col)")
+                        raise ValueError("Missing age column parameter (age_column or age_col)")
                     if not target_col:
-                        raise ValueError("缺少目标列参数 (target_column 或 target_col)")
+                        raise ValueError("Missing target column parameter (target_column or target_col)")
 
                     min_age = params['min_age']
                     max_age = params['max_age']
@@ -79,9 +79,9 @@ class BoundaryAnalyzer:
                 target_col = params.get('target_column') or params.get('target_col')
 
                 if not age_col:
-                    raise ValueError("缺少年龄列参数 (age_column 或 age_col)")
+                    raise ValueError("Missing age column parameter (age_column or age_col)")
                 if not target_col:
-                    raise ValueError("缺少目标列参数 (target_column 或 target_col)")
+                    raise ValueError("Missing target column parameter (target_column or target_col)")
 
                 min_age = params['min_age']
                 max_age = params['max_age']
@@ -90,7 +90,7 @@ class BoundaryAnalyzer:
                 boundary_mode = params.get('boundary_mode', 'exclusive')
 
                 if progress_callback:
-                    progress_callback(f"[MODE] 边界模式: {boundary_mode}, 最小样本数: {min_samples}")
+                    progress_callback(f"[MODE] Boundary mode: {boundary_mode}, min samples: {min_samples}")
 
             # 修复：确保 analysis_data 被正确定义
             if profiler:
@@ -105,32 +105,32 @@ class BoundaryAnalyzer:
                     profiler.log_data_size("边界分析清理后数据", cleaned_size)
 
                     if progress_callback:
-                        progress_callback(f"[DATA] 准备数据: {len(analysis_data)} 行有效数据")
+                        progress_callback(f"[DATA] Preparing data: {len(analysis_data)} valid rows")
             else:
                 # 数据准备
                 analysis_data = data[[age_col, target_col]].copy()
                 analysis_data = analysis_data.dropna()
 
                 if progress_callback:
-                    progress_callback(f"[DATA] 准备数据: {len(analysis_data)} 行有效数据")
+                    progress_callback(f"[DATA] Preparing data: {len(analysis_data)} valid rows")
 
             # 生成窗口
             if profiler:
                 with profiler.profile_operation("边界分析-窗口生成"):
                     if progress_callback:
-                        progress_callback("[WINDOW] 生成移动窗口...")
+                        progress_callback("[WINDOW] Generating moving windows...")
                     windows = self._generate_windows(min_age, max_age, window_size, step_size)
 
                     profiler.log_operation_count("窗口总数", len(windows))
                     if progress_callback:
-                        progress_callback(f"[INFO] 生成了 {len(windows)} 个窗口")
+                        progress_callback(f"[INFO] Generated {len(windows)} windows")
             else:
                 if progress_callback:
-                    progress_callback("[WINDOW] 生成移动窗口...")
+                    progress_callback("[WINDOW] Generating moving windows...")
                 windows = self._generate_windows(min_age, max_age, window_size, step_size)
 
                 if progress_callback:
-                    progress_callback(f"[INFO] 生成了 {len(windows)} 个窗口")
+                    progress_callback(f"[INFO] Generated {len(windows)} windows")
 
             # 根据边界模式处理
             if params.get('enable_boundary_comparison', False):
@@ -138,12 +138,12 @@ class BoundaryAnalyzer:
                     with profiler.profile_operation("边界分析-多方法比较"):
                         profiler.check_analysis_path("多边界方法比较")
                         if progress_callback:
-                            progress_callback("[COMPARE] 比较所有边界处理方法...")
+                            progress_callback("[COMPARE] Comparing all boundary methods...")
                         results = self._compare_all_boundary_methods(analysis_data, windows, age_col, target_col,
                                                                      params, progress_callback, min_samples)
                 else:
                     if progress_callback:
-                        progress_callback("[COMPARE] 比较所有边界处理方法...")
+                        progress_callback("[COMPARE] Comparing all boundary methods...")
                     results = self._compare_all_boundary_methods(analysis_data, windows, age_col, target_col, params,
                                                                  progress_callback, min_samples)
             else:
@@ -151,24 +151,24 @@ class BoundaryAnalyzer:
                     with profiler.profile_operation("边界分析-单方法处理"):
                         profiler.check_analysis_path("单边界方法", f"模式={boundary_mode}")
                         if progress_callback:
-                            progress_callback(f"[EXEC] 执行 {boundary_mode} 边界处理...")
+                            progress_callback(f"[EXEC] Running {boundary_mode} boundary handling...")
                         results = self._single_boundary_analysis(analysis_data, windows, age_col, target_col,
                                                                  boundary_mode, params, progress_callback, min_samples)
                 else:
                     if progress_callback:
-                        progress_callback(f"[EXEC] 执行 {boundary_mode} 边界处理...")
+                        progress_callback(f"[EXEC] Running {boundary_mode} boundary handling...")
                     results = self._single_boundary_analysis(analysis_data, windows, age_col, target_col, boundary_mode,
                                                              params, progress_callback, min_samples)
 
             if progress_callback:
-                progress_callback("[SUCCESS] 边界处理分析完成！")
+                progress_callback("[SUCCESS] Boundary analysis completed!")
 
             return results
 
         except Exception as e:
             if progress_callback:
-                progress_callback(f"[ERROR] 边界处理分析失败: {str(e)}")
-            raise Exception(f"边界处理分析失败: {str(e)}")
+                progress_callback(f"[ERROR] Boundary analysis failed: {str(e)}")
+            raise Exception(f"Boundary analysis failed: {str(e)}")
 
     def _generate_windows(self, min_age: float, max_age: float, window_size: float, step_size: float) -> List[
         Tuple[float, float, float]]:
@@ -391,7 +391,7 @@ class BoundaryAnalyzer:
         """执行单一边界处理方法分析 - 添加最小样本数参数"""
 
         if progress_callback:
-            progress_callback(f"[MODE] 使用 {boundary_mode} 模式分配数据... (最小样本数: {min_samples})")
+            progress_callback(f"[MODE] Assigning data with {boundary_mode} mode... (min samples: {min_samples})")
 
         # 获取边界处理方法
         boundary_func = self.boundary_methods.get(boundary_mode, self._exclusive_boundary)
@@ -400,7 +400,7 @@ class BoundaryAnalyzer:
         window_data = boundary_func(data, windows, age_col)
 
         if progress_callback:
-            progress_callback("[CALC] 计算窗口统计...")
+            progress_callback("[CALC] Calculating window statistics...")
 
         # 🔧 修复：计算统计结果 - 传递最小样本数和age_column参数
         results = self._calculate_window_statistics(
@@ -411,7 +411,7 @@ class BoundaryAnalyzer:
         # 添加边界信息
         if params.get('export_boundary_info', True):
             if progress_callback:
-                progress_callback("[ANALYZE] 分析边界点信息...")
+                progress_callback("[ANALYZE] Analyzing boundary points...")
             results['boundary_info'] = self._analyze_boundary_points(window_data, windows, age_col, boundary_mode)
 
         return results
@@ -427,7 +427,7 @@ class BoundaryAnalyzer:
         for i, (method_name, boundary_func) in enumerate(self.boundary_methods.items()):
             try:
                 if progress_callback:
-                    progress_callback(f"[METHOD] 分析方法 {i+1}/{len(methods)}: {method_name} (最小样本数: {min_samples})")
+                    progress_callback(f"[METHOD] Method {i+1}/{len(methods)}: {method_name} (min samples: {min_samples})")
 
                 # 分配数据到窗口
                 window_data = boundary_func(data, windows, age_col)
@@ -445,7 +445,7 @@ class BoundaryAnalyzer:
                 continue
 
         if progress_callback:
-            progress_callback("[COMPARE] 生成方法比较分析...")
+            progress_callback("[COMPARE] Building method comparison...")
 
         # 添加比较分析
         comparison_results['comparison_analysis'] = self._generate_method_comparison(comparison_results)
@@ -575,7 +575,7 @@ class BoundaryAnalyzer:
         """内部统计计算函数 - 使用传入的最小样本数参数和动态列名"""
 
         if progress_callback:
-            progress_callback(f"[CALC] 计算 {len(windows)} 个窗口的统计量... (最小样本数: {min_samples})")
+            progress_callback(f"[CALC] Calculating statistics for {len(windows)} windows... (min samples: {min_samples})")
 
         # 🔧 修复：使用动态列名构建结果字典
         results = {
@@ -607,7 +607,7 @@ class BoundaryAnalyzer:
         for i, (center, start, end) in enumerate(windows):
             # 每处理10个窗口更新一次进度
             if progress_callback and i % 10 == 0:
-                progress_callback(f"[WINDOW] Processing window {i + 1}/{len(windows)} (中心: {center:.0f}Ma)")
+                progress_callback(f"[WINDOW] Processing window {i + 1}/{len(windows)} (center: {center:.0f} Ma)")
 
             window_df = window_data.get(i, pd.DataFrame())
 
@@ -680,7 +680,7 @@ class BoundaryAnalyzer:
             profiler.log_bootstrap_details(len(windows), 10000, total_bootstrap_samples)
 
         if progress_callback:
-            progress_callback(f"[SUCCESS] 统计完成: {valid_windows}/{len(windows)} 个有效窗口")
+            progress_callback(f"[SUCCESS] Statistics completed: {valid_windows}/{len(windows)} valid windows")
 
         print(
             f"🔧 [FINAL] 最终有效窗口数: {valid_windows}, 原始窗口数: {len(windows)}, 跳过: {len(windows) - valid_windows}")

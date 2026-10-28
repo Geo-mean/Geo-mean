@@ -34,7 +34,7 @@ class EnhancedAxisControl:
         # 标题
         title_label = tk.Label(
             main_frame,
-            text="[Enhanced] 增强坐标轴控制",
+            text="[Enhanced] Axis Control",
             font=('Segoe UI', 16, 'bold'),
             fg='#2563eb',
             bg='white'
@@ -42,7 +42,7 @@ class EnhancedAxisControl:
         title_label.pack(pady=(0, 20))
 
         # 快速缩放按钮区域
-        zoom_frame = tk.LabelFrame(main_frame, text="[Quick] 快速缩放", bg='white',
+        zoom_frame = tk.LabelFrame(main_frame, text="[Quick] Quick Zoom", bg='white',
                                   font=('Segoe UI', 10, 'bold'))
         zoom_frame.pack(fill=tk.X, pady=(0, 15))
 
@@ -51,11 +51,11 @@ class EnhancedAxisControl:
 
         # 快速缩放按钮
         zoom_buttons = [
-            ("全览", self.zoom_to_all, '#3b82f6'),
-            ("缩放至数据", self.zoom_to_data, '#059669'),
-            ("放大 2x", lambda: self.zoom_factor(0.5), '#d97706'),
-            ("缩小 2x", lambda: self.zoom_factor(2.0), '#dc2626'),
-            ("重置", self.reset_zoom, '#6b7280')
+            ("Show All", self.zoom_to_all, '#3b82f6'),
+            ("Fit to Data", self.zoom_to_data, '#059669'),
+            ("Zoom In 2x", lambda: self.zoom_factor(0.5), '#d97706'),
+            ("Zoom Out 2x", lambda: self.zoom_factor(2.0), '#dc2626'),
+            ("Reset", self.reset_zoom, '#6b7280')
         ]
 
         for text, command, color in zoom_buttons:
@@ -74,7 +74,7 @@ class EnhancedAxisControl:
             btn.pack(side=tk.LEFT, padx=(0, 8))
 
         # 精确范围控制
-        range_frame = tk.LabelFrame(main_frame, text="[Precise] 精确范围控制", bg='white',
+        range_frame = tk.LabelFrame(main_frame, text="[Precise] Axis Range", bg='white',
                                    font=('Segoe UI', 10, 'bold'))
         range_frame.pack(fill=tk.X, pady=(0, 15))
 
@@ -85,15 +85,15 @@ class EnhancedAxisControl:
         x_frame = tk.Frame(range_content, bg='white')
         x_frame.pack(fill=tk.X, pady=(0, 10))
 
-        tk.Label(x_frame, text=f"X轴 ({self.x_col})", font=('Segoe UI', 9, 'bold'),
+        tk.Label(x_frame, text=f"X axis ({self.x_col})", font=('Segoe UI', 9, 'bold'),
                 fg='#1e293b', bg='white').pack(side=tk.LEFT, padx=(0, 20))
 
-        tk.Label(x_frame, text="最小值:", bg='white').pack(side=tk.LEFT, padx=(0, 5))
+        tk.Label(x_frame, text="Min:", bg='white').pack(side=tk.LEFT, padx=(0, 5))
         self.x_min_var = tk.DoubleVar(value=round(self.original_xlim[0], 2))
         x_min_entry = tk.Entry(x_frame, textvariable=self.x_min_var, width=12)
         x_min_entry.pack(side=tk.LEFT, padx=(0, 15))
 
-        tk.Label(x_frame, text="最大值:", bg='white').pack(side=tk.LEFT, padx=(0, 5))
+        tk.Label(x_frame, text="Max:", bg='white').pack(side=tk.LEFT, padx=(0, 5))
         self.x_max_var = tk.DoubleVar(value=round(self.original_xlim[1], 2))
         x_max_entry = tk.Entry(x_frame, textvariable=self.x_max_var, width=12)
         x_max_entry.pack(side=tk.LEFT, padx=(0, 15))
@@ -102,15 +102,15 @@ class EnhancedAxisControl:
         y_frame = tk.Frame(range_content, bg='white')
         y_frame.pack(fill=tk.X, pady=(0, 15))
 
-        tk.Label(y_frame, text=f"Y轴 ({self.y_col})", font=('Segoe UI', 9, 'bold'),
+        tk.Label(y_frame, text=f"Y axis ({self.y_col})", font=('Segoe UI', 9, 'bold'),
                 fg='#1e293b', bg='white').pack(side=tk.LEFT, padx=(0, 20))
 
-        tk.Label(y_frame, text="最小值:", bg='white').pack(side=tk.LEFT, padx=(0, 5))
+        tk.Label(y_frame, text="Min:", bg='white').pack(side=tk.LEFT, padx=(0, 5))
         self.y_min_var = tk.DoubleVar(value=round(self.original_ylim[0], 4))
         y_min_entry = tk.Entry(y_frame, textvariable=self.y_min_var, width=12)
         y_min_entry.pack(side=tk.LEFT, padx=(0, 15))
 
-        tk.Label(y_frame, text="最大值:", bg='white').pack(side=tk.LEFT, padx=(0, 5))
+        tk.Label(y_frame, text="Max:", bg='white').pack(side=tk.LEFT, padx=(0, 5))
         self.y_max_var = tk.DoubleVar(value=round(self.original_ylim[1], 4))
         y_max_entry = tk.Entry(y_frame, textvariable=self.y_max_var, width=12)
         y_max_entry.pack(side=tk.LEFT, padx=(0, 15))
@@ -118,7 +118,7 @@ class EnhancedAxisControl:
         # 应用按钮
         apply_btn = tk.Button(
             range_content,
-            text="[Apply] 应用范围",
+            text="[Apply] Apply Range",
             command=self.apply_range,
             bg='#2563eb',
             fg='white',
@@ -131,7 +131,7 @@ class EnhancedAxisControl:
         apply_btn.pack()
 
         # 智能建议区域
-        suggestion_frame = tk.LabelFrame(main_frame, text="[Smart] 智能建议", bg='white',
+        suggestion_frame = tk.LabelFrame(main_frame, text="[Smart] Suggestions", bg='white',
                                         font=('Segoe UI', 10, 'bold'))
         suggestion_frame.pack(fill=tk.X, pady=(0, 15))
 
@@ -157,11 +157,11 @@ class EnhancedAxisControl:
                                font=('Consolas', 9), relief='flat')
             stats_text.pack(fill=tk.X)
 
-            stats_info = f"""[Statistics] 数据统计信息
-X轴 ({self.x_col}): 范围 {x_data.min():.2f} - {x_data.max():.2f}, 均值 {x_data.mean():.2f}
-Y轴 ({self.y_col}): 范围 {y_data.min():.6f} - {y_data.max():.6f}, 均值 {y_data.mean():.6f}
-有效数据点: {len(x_data)} 个
-建议: 使用"缩放至数据"可自动调整到最佳显示范围"""
+            stats_info = f"""[Statistics] Data Summary
+X axis ({self.x_col}): range {x_data.min():.2f} - {x_data.max():.2f}, mean {x_data.mean():.2f}
+Y axis ({self.y_col}): range {y_data.min():.6f} - {y_data.max():.6f}, mean {y_data.mean():.6f}
+Valid data points: {len(x_data)}
+Tip: use "Fit to Data" to fit the axes to the data automatically"""
 
             stats_text.insert(tk.END, stats_info)
             stats_text.config(state='disabled')
@@ -191,7 +191,7 @@ Y轴 ({self.y_col}): 范围 {y_data.min():.6f} - {y_data.max():.6f}, 均值 {y_d
             self.update_range_vars()
 
         except Exception as e:
-            messagebox.showerror("错误", f"缩放到数据范围失败: {e}")
+            messagebox.showerror("Error", f"Failed to fit to data: {e}")
 
     def zoom_factor(self, factor):
         """按倍数缩放"""
@@ -212,7 +212,7 @@ Y轴 ({self.y_col}): 范围 {y_data.min():.6f} - {y_data.max():.6f}, 均值 {y_d
             self.update_range_vars()
 
         except Exception as e:
-            messagebox.showerror("错误", f"缩放失败: {e}")
+            messagebox.showerror("Error", f"Zoom failed: {e}")
 
     def reset_zoom(self):
         """重置到原始范围"""
@@ -227,9 +227,9 @@ Y轴 ({self.y_col}): 范围 {y_data.min():.6f} - {y_data.max():.6f}, 均值 {y_d
             self.ax.set_xlim(self.x_min_var.get(), self.x_max_var.get())
             self.ax.set_ylim(self.y_min_var.get(), self.y_max_var.get())
             self.canvas.draw()
-            messagebox.showinfo("成功", "坐标轴范围已更新")
+            messagebox.showinfo("Success", "Axis range updated")
         except Exception as e:
-            messagebox.showerror("错误", f"应用范围失败: {e}")
+            messagebox.showerror("Error", f"Failed to apply range: {e}")
 
     def update_range_vars(self):
         """更新范围变量"""

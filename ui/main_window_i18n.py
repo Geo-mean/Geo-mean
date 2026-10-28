@@ -143,17 +143,17 @@ class AnalysisConfig:
     def validate_params(cls, params):
         """验证分析参数"""
         if not isinstance(params, dict):
-            return False, "参数必须是字典类型"
+            return False, "Parameters must be a dictionary"
 
         required_keys = ['age_column', 'target_column', 'window_size', 'step_size']
         for key in required_keys:
             if key not in params:
-                return False, f"缺少必需参数: {key}"
+                return False, f"Missing required parameter: {key}"
 
         if params['window_size'] <= 0 or params['step_size'] <= 0:
-            return False, "窗口大小和步长必须大于0"
+            return False, "Window size and step size must be greater than 0"
 
-        return True, "参数验证通过"
+        return True, "Parameters are valid"
 
 
 class ModernExcelAnalyzerGUI:
@@ -233,7 +233,7 @@ class ModernExcelAnalyzerGUI:
         except Exception as e:
             print(f"[ERROR] 处理全局数据变化失败: {e}")
 
-    def _update_data_consistently(self, new_data, operation_name="数据更新", undoable=True):
+    def _update_data_consistently(self, new_data, operation_name="Data Update", undoable=True):
         """统一更新数据的方法 - 现在通过全局数据管理器
 
         undoable: 为 True 时这一步可以用 Edit → Undo 撤销
@@ -739,7 +739,7 @@ class ModernExcelAnalyzerGUI:
             # 数据验证
             is_valid, message = self.data_manager.validate_data_for_operation()
             if not is_valid:
-                self.show_warning_message('警告', message)
+                self.show_warning_message('Warning', message)
                 return
 
             # 导入新的地理聚合对话框
@@ -765,13 +765,13 @@ class ModernExcelAnalyzerGUI:
                 print("[INFO] 用户取消了地理聚合操作")
 
         except ImportError as e:
-            error_msg = '无法导入地理聚合对话框模块'
+            error_msg = 'Cannot import the gridding dialog module'
             print(f"[ERROR] {error_msg}: {e}")
-            self.show_error_message('错误', f"{error_msg}\n请确保 ui/geo_aggregation_dialog.py 文件存在且正确")
+            self.show_error_message('Error', f"{error_msg}\nPlease make sure ui/geo_aggregation_dialog.py exists and is valid.")
         except Exception as e:
-            error_msg = '简单地理聚合对话框打开失败'
+            error_msg = 'Failed to open the gridding dialog'
             print(f"[ERROR] {error_msg}: {e}")
-            self.show_error_message('错误', f"{error_msg}: {str(e)}")
+            self.show_error_message('Error', f"{error_msg}: {str(e)}")
 
     # 在 main_window_i18n.py 中添加这个方法，专门处理地理聚合数据导出
 
@@ -925,7 +925,7 @@ class ModernExcelAnalyzerGUI:
         """应用简单地理聚合结果 - 保存原始列顺序版本"""
         try:
             # 更新状态
-            self.update_status("[Processing] 应用地理聚合结果...")
+            self.update_status("[Processing] Applying gridding result...")
 
             # === 新增：保存原始列顺序（在数据被修改前） ===
             if hasattr(self, 'data') and self.data is not None:
@@ -946,7 +946,7 @@ class ModernExcelAnalyzerGUI:
 
             # 验证聚合数据
             if aggregated_data is None or len(aggregated_data) == 0:
-                raise ValueError("聚合后的数据为空")
+                raise ValueError("Gridded data is empty")
 
             # 构建操作名称 - 修复版本，安全处理parameters
             if 'parameters' in stats and 'coord_description' in stats['parameters']:
@@ -967,9 +967,9 @@ class ModernExcelAnalyzerGUI:
 
             # 更新分析状态
             status_msg = (
-                f"地理聚合完成: "
-                f"聚合方法 {method}, "
-                f"数据压缩 {stats['compression_ratio']:.1%}"
+                f"Geographic gridding completed: "
+                f"method {method}, "
+                f"data reduced to {stats['compression_ratio']:.1%}"
             )
             self.update_geochem_analysis_status(status_msg, "success")
 
@@ -982,7 +982,7 @@ class ModernExcelAnalyzerGUI:
             print(f"[SUCCESS] 简单地理聚合完成: 使用 {method} 方法")
 
         except Exception as e:
-            error_msg = '地理聚合结果应用失败'
+            error_msg = 'Failed to apply gridding result'
             print(f"[ERROR] {error_msg}: {e}")
 
             # 打印详细错误信息用于调试
@@ -991,7 +991,7 @@ class ModernExcelAnalyzerGUI:
             print(traceback.format_exc())
 
             self.update_status(f"[Error] {error_msg}")
-            self.show_error_message('错误', f"{error_msg}: {str(e)}")
+            self.show_error_message('Error', f"{error_msg}: {str(e)}")
 
     def _show_geo_aggregation_success_message(self, stats, method, group_column):
         """Show geographic aggregation success message - Fixed Unicode version"""
@@ -1555,7 +1555,7 @@ class ModernExcelAnalyzerGUI:
             self.global_data_manager.set_original_data(
                 self.data_processor.data,
                 self.data_processor.file_path,
-                f"文件: {self.data_processor.file_path}"
+                f"File: {self.data_processor.file_path}"
             )
 
             # 原有逻辑保持不变
@@ -1716,8 +1716,8 @@ class ModernExcelAnalyzerGUI:
         except Exception as e:
             print(f"[ERROR] 打开异常值处理对话框失败: {e}")
             self.show_error_message(
-                language_manager.get_text('error', '错误'),
-                f"打开异常值处理对话框失败: {str(e)}"
+                language_manager.get_text('error', 'Error'),
+                f"Failed to open the outlier elimination dialog: {str(e)}"
             )
 
     def apply_outlier_removal(self, params):
@@ -1815,18 +1815,18 @@ class ModernExcelAnalyzerGUI:
             # 原有的验证代码保持不变
             is_valid, message = self.data_manager.validate_data_for_operation()
             if not is_valid:
-                self.show_warning_message('警告', message)
+                self.show_warning_message('Warning', message)
                 return
 
             if not hasattr(self, 'moving_window_integration') or not self.moving_window_integration:
-                self.show_error_message('错误', '移动窗口分析模块未初始化，请重新加载数据文件')
+                self.show_error_message('Error', 'Moving window analysis module is not initialized. Please reload the data file.')
                 return
 
             columns = self.moving_window_integration.get_available_columns()
             numeric_columns = columns['numeric']
 
             if len(numeric_columns) < 2:
-                self.show_warning_message('警告', '至少需要2个数值列才能进行移动窗口分析')
+                self.show_warning_message('Warning', 'At least 2 numeric columns are required for moving window analysis.')
                 return
 
             # 显示对话框
@@ -1839,7 +1839,7 @@ class ModernExcelAnalyzerGUI:
             # 验证参数
             is_valid, error_msg = self._validate_analysis_params_local(params)
             if not is_valid:
-                self.show_warning_message('警告', error_msg)
+                self.show_warning_message('Warning', error_msg)
                 return
 
             # 🆕 新增：根据分析方法选择不同的处理方式
@@ -1850,9 +1850,9 @@ class ModernExcelAnalyzerGUI:
                 self._execute_analysis_with_boundary_fix(params, None)
 
         except Exception as e:
-            error_msg = '启动移动窗口分析失败'
+            error_msg = 'Failed to start moving window analysis'
             print(f"[ERROR] {error_msg}: {e}")
-            self.show_error_message('错误', f"{error_msg}: {str(e)}")
+            self.show_error_message('Error', f"{error_msg}: {str(e)}")
 
     # 立即修复方案 - 直接替换 main_window_i18n.py 中的 _run_fast_analysis 方法
 
@@ -2374,7 +2374,7 @@ class ModernExcelAnalyzerGUI:
                         current_data = self.data.copy() if hasattr(self, 'data') and self.data is not None else None
 
                         if current_data is None:
-                            raise ValueError("没有可用的数据进行分析")
+                            raise ValueError("No data available for analysis")
 
                         profiler.log_data_size("主窗口当前数据", len(current_data))
                         profiler.check_analysis_path("数据来源", "主窗口self.data")
@@ -2382,7 +2382,7 @@ class ModernExcelAnalyzerGUI:
                     current_data = self.data.copy() if hasattr(self, 'data') and self.data is not None else None
 
                     if current_data is None:
-                        raise ValueError("没有可用的数据进行分析")
+                        raise ValueError("No data available for analysis")
 
                 def progress_callback(message, current=0, total=0):
                     try:
@@ -2543,7 +2543,7 @@ class ModernExcelAnalyzerGUI:
                                 valid_windows = len(results.dropna(subset=[mean_col]))
                             else:
                                 valid_windows = len(results)  # 备用方案
-                            message = f'[SUCCESS] 分析完成！总窗口数: {len(results)}, 有效窗口数: {valid_windows}'
+                            message = f'[SUCCESS] Analysis completed! Total windows: {len(results)}, valid windows: {valid_windows}'
                             print(f"[DEBUG-FIX] [OK] 分析成功: {message}")
                             profiler.log_operation_count("有效窗口", valid_windows)
                     else:
@@ -2560,11 +2560,11 @@ class ModernExcelAnalyzerGUI:
                             valid_windows = len(results.dropna(subset=[mean_col]))
                         else:
                             valid_windows = len(results)  # 备用方案
-                        message = f'[SUCCESS] 分析完成！总窗口数: {len(results)}, 有效窗口数: {valid_windows}'
+                        message = f'[SUCCESS] Analysis completed! Total windows: {len(results)}, valid windows: {valid_windows}'
                         print(f"[DEBUG-FIX] [OK] 分析成功: {message}")
                 else:
                     success = False
-                    message = '[ERROR] 分析未产生有效结果'
+                    message = '[ERROR] Analysis produced no valid results'
                     results = None
                     print("[DEBUG-FIX] [ERROR] 分析失败")
 
@@ -2577,7 +2577,7 @@ class ModernExcelAnalyzerGUI:
                     progress_window, success, message, results, params))
 
             except Exception as e:
-                error_msg = f"[ERROR] 分析线程出错: {str(e)}"
+                error_msg = f"[ERROR] Analysis thread error: {str(e)}"
                 print(f"[ERROR] {error_msg}")
                 if profiler:
                     profiler.check_analysis_path("分析异常", str(e))
@@ -2628,10 +2628,10 @@ class ModernExcelAnalyzerGUI:
                 if results is not None and len(results) > 0:
                     results = self._fix_error_bars(results)
                     success = True
-                    message = f'分析完成！总窗口数: {len(results)}'
+                    message = f'Analysis completed! Total windows: {len(results)}'
                 else:
                     success = False
-                    message = '分析未产生结果'
+                    message = 'Analysis produced no results'
 
                 # 处理完成
                 self.root.after(0, lambda: self._handle_analysis_complete_fixed(
@@ -3232,7 +3232,7 @@ class ModernExcelAnalyzerGUI:
             from tkinter import ttk
 
             progress_window = tk.Toplevel(self.root)
-            progress_window.title("导出进度")
+            progress_window.title("Export Progress")
             progress_window.geometry("400x150")
             progress_window.transient(self.root)
             progress_window.grab_set()
@@ -3250,7 +3250,7 @@ class ModernExcelAnalyzerGUI:
             # 标题
             title_label = tk.Label(
                 main_frame,
-                text="正在导出数据...",
+                text="Exporting data...",
                 font=('Arial', 12, 'bold'),
                 bg='white',
                 fg='#2E86C1'
@@ -3265,7 +3265,7 @@ class ModernExcelAnalyzerGUI:
 
             file_label = tk.Label(
                 main_frame,
-                text=f"文件: {file_name}",
+                text=f"File: {file_name}",
                 font=('Arial', 9),
                 bg='white',
                 fg='#666666'
@@ -3283,7 +3283,7 @@ class ModernExcelAnalyzerGUI:
 
             # 状态标签
             status_var = tk.StringVar()
-            status_var.set("准备导出...")
+            status_var.set("Preparing export...")
             status_label = tk.Label(
                 main_frame,
                 textvariable=status_var,
@@ -3339,19 +3339,19 @@ class ModernExcelAnalyzerGUI:
                 self._update_export_progress(status_var, message)
 
             try:
-                progress_callback("分析数据结构...")
+                progress_callback("Analyzing data structure...")
 
                 # 关键修复：检测是否需要重排序
                 needs_reordering = self._should_reorder_columns(data, data_description)
 
                 if needs_reordering:
                     print(f"[EXPORT-FIX] 检测到特殊数据类型，将重排序列")
-                    progress_callback("重排序列...")
+                    progress_callback("Reordering columns...")
                     # 使用原有的重排序逻辑
                     sorted_data = self._apply_column_reordering(data)
                 else:
                     print(f"[EXPORT-FIX] 地理聚合数据，保持原始列顺序")
-                    progress_callback("保持原始列顺序...")
+                    progress_callback("Keeping original column order...")
                     # 关键修复：直接使用原始数据，不重排序
                     sorted_data = data.copy()
 
@@ -3359,7 +3359,7 @@ class ModernExcelAnalyzerGUI:
                 if filename.lower().endswith('.xlsx'):
                     success = self.export_to_excel_simple(sorted_data, filename, data_description, progress_callback)
                 elif filename.lower().endswith('.csv'):
-                    progress_callback("CSV导出...")
+                    progress_callback("Writing CSV...")
                     sorted_data.to_csv(filename, index=False, encoding='utf-8-sig')
                     success = True
                 else:
@@ -3368,7 +3368,7 @@ class ModernExcelAnalyzerGUI:
                         filename += '.xlsx'
                     success = self.export_to_excel_simple(sorted_data, filename, data_description, progress_callback)
 
-                progress_callback("导出完成！")
+                progress_callback("Export completed!")
                 print(f"[EXPORT-FIX] 导出完成: {filename}")
                 print(f"[EXPORT-FIX] 最终列顺序: {list(sorted_data.columns)[:10]}...")
 
@@ -3402,7 +3402,7 @@ class ModernExcelAnalyzerGUI:
             print(f"[EXPORT-FIX] 原始列顺序: {list(data.columns)[:10]}...")  # 显示前10列
 
             if progress_callback:
-                progress_callback("分析数据结构...")
+                progress_callback("Analyzing data structure...")
 
             # 核心修改：检测是否需要重排序
             needs_reordering = self._should_reorder_columns(data, data_description)
@@ -3410,55 +3410,55 @@ class ModernExcelAnalyzerGUI:
             if needs_reordering:
                 print(f"[EXPORT-FIX] 检测到特殊数据类型，将重排序列")
                 if progress_callback:
-                    progress_callback("重排序列...")
+                    progress_callback("Reordering columns...")
                 # 使用原有的重排序逻辑
                 sorted_data = self._apply_column_reordering(data)
             else:
                 print(f"[EXPORT-FIX] 保持原始列顺序导出")
                 if progress_callback:
-                    progress_callback("保持原始列顺序...")
+                    progress_callback("Keeping original column order...")
                 # 关键修改：直接使用原始数据，不重排序
                 sorted_data = data.copy()
 
             if progress_callback:
-                progress_callback("准备Excel文件...")
+                progress_callback("Preparing Excel file...")
 
             # 创建Excel文件
             with pd.ExcelWriter(filename, engine='openpyxl') as writer:
                 if progress_callback:
-                    progress_callback("写入主数据表...")
+                    progress_callback("Writing data sheet...")
 
                 # 主数据 - 使用处理后的数据
-                sorted_data.to_excel(writer, sheet_name='数据', index=False)
+                sorted_data.to_excel(writer, sheet_name='Data', index=False)
 
                 if progress_callback:
-                    progress_callback("写入导出信息...")
+                    progress_callback("Writing export info...")
 
                 # 导出信息页
                 info_data = {
-                    '属性': [
-                        '导出时间',
-                        '数据类型',
-                        '总记录数',
-                        '总列数',
-                        '列顺序处理',
-                        '程序版本'
+                    'Property': [
+                        'Export time',
+                        'Data type',
+                        'Total records',
+                        'Total columns',
+                        'Column order',
+                        'Software version'
                     ],
-                    '值': [
+                    'Value': [
                         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         data_description,
                         len(sorted_data),
                         len(sorted_data.columns),
-                        '重排序' if needs_reordering else '保持原始顺序',
-                        'Excel地球化学数据分析器 v4.0 (修复版)'
+                        'Reordered' if needs_reordering else 'Original order',
+                        'Geo-mean'
                     ]
                 }
 
                 info_df = pd.DataFrame(info_data)
-                info_df.to_excel(writer, sheet_name='导出信息', index=False)
+                info_df.to_excel(writer, sheet_name='Export Info', index=False)
 
             if progress_callback:
-                progress_callback("导出完成！")
+                progress_callback("Export completed!")
 
             print(f"[EXPORT-FIX] 导出完成: {filename}")
             print(f"[EXPORT-FIX] 最终列顺序: {list(sorted_data.columns)[:10]}...")
@@ -3519,8 +3519,8 @@ class ModernExcelAnalyzerGUI:
                 valid_windows = len(results)  # 备用方案
             total_windows = len(results)
 
-            self.update_status(f"[OK] 移动窗口分析完成: {valid_windows}/{total_windows} 有效窗口")
-            self.update_geochem_analysis_status(f"分析完成: {valid_windows}/{total_windows} 有效窗口", "success")
+            self.update_status(f"[OK] Moving window analysis completed: {valid_windows}/{total_windows} valid windows")
+            self.update_geochem_analysis_status(f"Analysis completed: {valid_windows}/{total_windows} valid windows", "success")
 
             # 自动设置图表列
             # 🔧 修复：使用移动窗口分析实际生成的动态列名
@@ -3543,24 +3543,24 @@ class ModernExcelAnalyzerGUI:
                 # 分析完成后不自动切换X/Y轴，保留用户原有选择
 
             # 显示完成信息
-            completion_text = f"""移动窗口分析完成！
+            completion_text = f"""Moving window analysis completed!
 
-    总窗口数: {total_windows}
-    有效窗口数: {valid_windows}
-    [OK] 进度条已恢复
-    [OK] 误差棒已修复 - 所有点都有误差棒
+    Total windows: {total_windows}
+    Valid windows: {valid_windows}
+    [OK] Progress bar restored
+    [OK] Error bars available for all points
 
-    分析结果已准备就绪，可以生成图表。"""
+    Results are ready. You can now generate the chart."""
 
-            self.show_info_message('分析成功', completion_text)
+            self.show_info_message('Analysis Successful', completion_text)
         else:
-            self.show_warning_message('分析失败', message)
+            self.show_warning_message('Analysis Failed', message)
 
     def _handle_analysis_error_simple(self, progress_window, error_msg):
         """处理分析错误"""
         if progress_window:
             progress_window.close()
-        self.show_error_message('分析错误', f"分析失败: {error_msg}")
+        self.show_error_message('Analysis Error', f"Analysis failed: {error_msg}")
 
 
 
@@ -3572,19 +3572,19 @@ class ModernExcelAnalyzerGUI:
         try:
             completion_text = f"""SUCCESS！
 
-    年龄列: {params['age_column']}
-    目标列: {params['target_column']}
-    年龄范围: {params['min_age']:.0f}-{params['max_age']:.0f} Ma
-    窗口大小: {params['window_size']:.0f} Ma
-    移动步长: {params['step_size']:.0f} Ma
+    Age column: {params['age_column']}
+    Target column: {params['target_column']}
+    Age range: {params['min_age']:.0f}-{params['max_age']:.0f} Ma
+    Window size: {params['window_size']:.0f} Ma
+    Step size: {params['step_size']:.0f} Ma
 
-    [REFRESH] 分析类型: {analysis_type}
-    总窗口数: {total_windows}
-    有效窗口数: {valid_windows}
-    边界点数: {boundary_points}
+    [REFRESH] Analysis type: {analysis_type}
+    Total windows: {total_windows}
+    Valid windows: {valid_windows}
+    Boundary points: {boundary_points}
 
-    ✨ 边界处理功能已生效，优化了窗口边界处的数据点分配。
-    分析结果已准备就绪，可以生成图表。"""
+    Boundary handling is enabled, optimizing how data points at window edges are assigned.
+    Results are ready. You can now generate the chart."""
 
             self.show_info_message('SUCCESS', completion_text)
 
@@ -3669,10 +3669,10 @@ class ModernExcelAnalyzerGUI:
                         else:
                             valid_windows = len(results)  # 备用方案
                         total_windows = len(results)
-                        message = f'分析完成！总窗口数: {total_windows}, 有效窗口数: {valid_windows}'
+                        message = f'Analysis completed! Total windows: {total_windows}, valid windows: {valid_windows}'
                     else:
                         success = False
-                        message = '分析未产生有效结果'
+                        message = 'Analysis produced no valid results'
                         results = None
 
                 except ImportError:
@@ -3969,8 +3969,8 @@ class ModernExcelAnalyzerGUI:
 
             if chart_data is None or len(chart_data) == 0:
                 self.show_warning_message(
-                    language_manager.get_text('warning', '警告'),
-                    f"没有有效数据用于生成图表。\n\n当前状态：{data_source_info}"
+                    language_manager.get_text('warning', 'Warning'),
+                    f"No valid data available to generate the chart.\n\nCurrent status: {data_source_info}"
                 )
                 return
 
@@ -3982,28 +3982,28 @@ class ModernExcelAnalyzerGUI:
                 status_message = f"Successfully generated {chart_type}: {data_source_info} ({data_count} DATAS)"
                 self.update_status(status_message)
             else:
-                self.update_status(f"[Error] 图表生成失败: {result_message}")
-                self.show_error_message("错误", result_message)
+                self.update_status(f"[Error] Chart generation failed: {result_message}")
+                self.show_error_message("Error", result_message)
 
         except Exception as e:
             print(f"[ERROR] 图表生成失败: {e}")
-            self.show_error_message("错误", f"图表显示失败: {str(e)}")
+            self.show_error_message("Error", f"Failed to display chart: {str(e)}")
 
     def save_chart(self):
         """保存图表"""
         try:
             success, message = self.chart_controller.save_current_chart()
             if success:
-                self.update_status(f"[OK] {language_manager.get_text('chart_saved', '图表已保存')}")
-                self.show_info_message(language_manager.get_text('success', '成功'), message)
+                self.update_status(f"[OK] {language_manager.get_text('chart_saved', 'Chart saved')}")
+                self.show_info_message(language_manager.get_text('success', 'Success'), message)
             else:
-                self.update_status(f"[Error] {language_manager.get_text('save_error', '保存失败')}")
-                self.show_error_message(language_manager.get_text('error', '错误'), message)
+                self.update_status(f"[Error] {language_manager.get_text('save_error', 'Save failed')}")
+                self.show_error_message(language_manager.get_text('error', 'Error'), message)
         except Exception as e:
             print(f"[ERROR] 保存图表失败: {e}")
             self.show_error_message(
-                language_manager.get_text('error', '错误'),
-                f"保存图表失败: {str(e)}"
+                language_manager.get_text('error', 'Error'),
+                f"Failed to save chart: {str(e)}"
             )
 
     def _get_smart_chart_data(self, x_col, y_col):
@@ -4050,7 +4050,7 @@ class ModernExcelAnalyzerGUI:
                     if filtered_data is not None and len(filtered_data) > 0:
                         chart_data = self._extract_chart_data(filtered_data, x_col, y_col)
                         if chart_data is not None and len(chart_data) > 0:
-                            return chart_data, f"筛选后数据({len(chart_data)}个有效点)"
+                            return chart_data, f"Filtered data ({len(chart_data)} valid points)"
 
                 # 使用当前数据（可能包含分段处理的结果）
                 chart_data = self._extract_chart_data(self.data, x_col, y_col)
@@ -4058,15 +4058,15 @@ class ModernExcelAnalyzerGUI:
                     # 检查数据是否可能经过分段处理
                     nan_ratio = chart_data[y_col].isna().sum() / len(chart_data)
                     if nan_ratio > 0.05:  # 如果有超过5%的NaN值，可能经过了异常值处理
-                        return chart_data, f"使用分段处理后的数据({len(chart_data)}个有效点)"
+                        return chart_data, f"Interval-processed data ({len(chart_data)} valid points)"
                     else:
                         return chart_data, f"NOW ({len(chart_data)} DATA)"
 
-            return None, "没有可用数据"
+            return None, "No data available"
 
         except Exception as e:
             print(f"[ERROR] 获取图表数据源失败: {e}")
-            return None, "数据获取错误"
+            return None, "Error getting data"
 
     def _extract_chart_data(self, data, x_col, y_col):
         """从数据中提取有效的图表数据"""
@@ -4406,43 +4406,43 @@ class ModernExcelAnalyzerGUI:
     def _validate_analysis_params_local(self, params):
         """本地参数验证函数"""
         if not isinstance(params, dict):
-            return False, "参数必须是字典类型"
+            return False, "Parameters must be a dictionary"
 
         required_keys = ['age_column', 'target_column', 'window_size', 'step_size']
         for key in required_keys:
             if key not in params:
-                return False, f"缺少必需参数: {key}"
+                return False, f"Missing required parameter: {key}"
 
         try:
             window_size = float(params['window_size'])
             step_size = float(params['step_size'])
 
             if window_size <= 0 or step_size <= 0:
-                return False, "窗口大小和步长必须大于0"
+                return False, "Window size and step size must be greater than 0"
 
         except (ValueError, TypeError):
-            return False, "窗口大小和步长必须是有效数值"
+            return False, "Window size and step size must be valid numbers"
 
-        return True, "参数验证通过"
+        return True, "Parameters are valid"
 
     def _confirm_analysis_execution_local(self, params):
         """本地确认执行函数"""
         try:
-            confirm_text = f"""移动窗口分析参数摘要:
+            confirm_text = f"""Moving window analysis parameters:
 
-    年龄列: {params['age_column']}
-    目标列: {params['target_column']}
-    年龄范围: {params.get('min_age', 'N/A')} - {params.get('max_age', 'N/A')} Ma
-    窗口大小: {params['window_size']} Ma
-    步长: {params['step_size']} Ma
-    边界模式: {params.get('boundary_mode', 'exclusive')}
-    预计窗口数: {params.get('estimated_windows', 'N/A')}
+    Age column: {params['age_column']}
+    Target column: {params['target_column']}
+    Age range: {params.get('min_age', 'N/A')} - {params.get('max_age', 'N/A')} Ma
+    Window size: {params['window_size']} Ma
+    Step size: {params['step_size']} Ma
+    Boundary mode: {params.get('boundary_mode', 'exclusive')}
+    Estimated windows: {params.get('estimated_windows', 'N/A')}
 
-    [FIX] 已启用边界处理功能
+    [FIX] Boundary handling enabled
 
-    确定要开始分析吗？"""
+    Start the analysis?"""
 
-            return messagebox.askyesno('确认分析', confirm_text)
+            return messagebox.askyesno('Confirm Analysis', confirm_text)
         except Exception as e:
             print(f"[ERROR] 构建确认信息失败: {e}")
             return True
@@ -4468,18 +4468,18 @@ class ModernExcelAnalyzerGUI:
             # 严格检查：必须有真实的Bootstrap误差数据
             if 'std_error' not in results.columns:
                 raise ValueError(
-                    "Bootstrap分析结果缺少std_error列。"
-                    "请确保移动窗口分析正确计算了Bootstrap统计量。"
-                    "不允许使用默认误差棒作为替代方案。"
+                    "Bootstrap results are missing the std_error column. "
+                    "Please make sure the moving window analysis computed the Bootstrap statistics. "
+                    "Default error bars are not used as a substitute."
                 )
 
             # 检查数据质量：不允许全部为空
             valid_errors = results['std_error'].dropna()
             if len(valid_errors) == 0:
                 raise ValueError(
-                    "Bootstrap误差数据全部无效(NaN)。"
-                    "请检查Bootstrap计算流程，确保每个窗口都有有效的统计结果。"
-                    "不允许使用插值或估算作为替代方案。"
+                    "All Bootstrap error values are invalid (NaN). "
+                    "Please check the Bootstrap calculation so that every window has valid statistics. "
+                    "Interpolated or estimated values are not used as a substitute."
                 )
 
             # 检查是否有过多的缺失值
@@ -4489,9 +4489,9 @@ class ModernExcelAnalyzerGUI:
 
             if missing_ratio > 0.1:  # 超过10%缺失
                 raise ValueError(
-                    f"Bootstrap误差数据缺失率过高: {missing_ratio:.1%} ({nan_count}/{total_count})。"
-                    "请修复Bootstrap计算流程，确保大部分窗口都能产生有效的统计结果。"
-                    "不允许使用插值修复大量缺失数据。"
+                    f"Too many Bootstrap error values are missing: {missing_ratio:.1%} ({nan_count}/{total_count})。"
+                    "Please fix the Bootstrap calculation so that most windows produce valid statistics. "
+                    "Interpolation is not used to fill large gaps."
                 )
 
             # 严格模式：不进行任何修复或替换
@@ -4712,14 +4712,14 @@ class ModernExcelAnalyzerGUI:
             # 1. 检查全局数据管理器
             if not hasattr(self, 'global_data_manager'):
                 from tkinter import messagebox
-                messagebox.showerror("错误", "全局数据管理器未初始化")
+                messagebox.showerror("Error", "Data manager is not initialized.")
                 return
 
             # 2. 获取当前数据
             current_data = self.global_data_manager.get_current_data()
             if current_data is None:
                 from tkinter import messagebox
-                messagebox.showwarning("警告", "请先加载数据")
+                messagebox.showwarning("Warning", "Please load data first.")
                 return
 
             print(f"[DEBUG] 准备执行地理聚合，当前数据: {len(current_data)} 行 x {len(current_data.columns)} 列")
@@ -4783,30 +4783,30 @@ class ModernExcelAnalyzerGUI:
 
                 # 9. 显示成功消息
                 from tkinter import messagebox
-                message = (f"地理聚合完成！\n\n"
-                           f"聚合方法: {method}\n"
-                           f"分组依据: {group_column}\n"
-                           f"原始数据: {stats.get('original_count', 0)} 行\n"
-                           f"聚合后: {stats.get('aggregated_count', 0)} 行\n"
-                           f"聚合比例: {stats.get('aggregation_ratio', 0):.1%}")
+                message = (f"Geographic gridding completed!\n\n"
+                           f"Method: {method}\n"
+                           f"Grouped by: {group_column}\n"
+                           f"Original data: {stats.get('original_count', 0)} rows\n"
+                           f"After gridding: {stats.get('aggregated_count', 0)} rows\n"
+                           f"Ratio: {stats.get('aggregation_ratio', 0):.1%}")
 
-                messagebox.showinfo("聚合成功", message)
+                messagebox.showinfo("Gridding Successful", message)
 
                 # 10. 更新状态栏（如果有的话）
                 if hasattr(self, 'update_status_bar'):
-                    status_msg = f"地理聚合完成: {stats['original_count']} → {stats['aggregated_count']} 行"
+                    status_msg = f"Geographic gridding completed: {stats['original_count']} → {stats['aggregated_count']} rows"
                     self.update_status_bar(status_msg)
 
             else:
                 from tkinter import messagebox
-                messagebox.showerror("错误", "聚合结果更新失败")
+                messagebox.showerror("Error", "Failed to update gridding result.")
 
         except Exception as e:
-            error_msg = f"地理聚合失败: {str(e)}"
+            error_msg = f"Geographic gridding failed: {str(e)}"
             print(f"[ERROR] {error_msg}")
 
             from tkinter import messagebox
-            messagebox.showerror("错误", error_msg)
+            messagebox.showerror("Error", error_msg)
 
     # ------------------------------------------------------------------
     # 撤销 / 重做
@@ -4909,18 +4909,18 @@ class ModernExcelAnalyzerGUI:
             print(f"[ERROR] 撤销/重做后刷新界面失败: {e}")
 
     def reset_to_original_data(self):
-        """重置到原始数据 - 集成到你的主窗口"""
+        """重置到原始数据（Edit → Reset to Original Data）"""
         try:
             if not hasattr(self, 'global_data_manager'):
                 from tkinter import messagebox
-                messagebox.showerror("错误", "全局数据管理器未初始化")
+                messagebox.showerror("Error", "Data manager is not initialized.")
                 return
 
             # 检查是否有原始数据
             original_data = self.global_data_manager.get_original_data()
             if original_data is None:
                 from tkinter import messagebox
-                messagebox.showinfo("提示", "没有原始数据可以重置")
+                messagebox.showinfo("Info", "No original data to reset to. Please load a file first.")
                 return
 
             # 重置数据
@@ -4942,21 +4942,21 @@ class ModernExcelAnalyzerGUI:
 
                 # 更新状态栏
                 if hasattr(self, 'update_status_bar'):
-                    self.update_status_bar("已重置到原始数据")
+                    self.update_status_bar("Reset to original data")
 
                 from tkinter import messagebox
-                messagebox.showinfo("成功", "已重置到原始数据")
+                messagebox.showinfo("Success", "Data has been reset to the original file.\nYou can undo this with Edit → Undo (Ctrl+Z).")
 
             else:
                 from tkinter import messagebox
-                messagebox.showerror("错误", "重置失败")
+                messagebox.showerror("Error", "Reset failed.")
 
         except Exception as e:
-            error_msg = f"重置数据时出错: {str(e)}"
+            error_msg = f"Error while resetting data: {str(e)}"
             print(f"[ERROR] {error_msg}")
 
             from tkinter import messagebox
-            messagebox.showerror("错误", error_msg)
+            messagebox.showerror("Error", error_msg)
 
     def load_excel_with_location_fix(self, file_path):
         """加载Excel文件 - 使用修复后的数据处理器"""
@@ -4984,7 +4984,7 @@ class ModernExcelAnalyzerGUI:
                     success = self.global_data_manager.set_original_data(
                         loaded_data,
                         file_path=file_path,
-                        source_info=f"Excel文件: {file_path}"
+                        source_info=f"Excel file: {file_path}"
                     )
 
                     if success:
@@ -4999,7 +4999,7 @@ class ModernExcelAnalyzerGUI:
 
                         return True, message
                     else:
-                        return False, "数据设置到全局管理器失败"
+                        return False, "Failed to pass data to the data manager"
                 else:
                     # 如果没有全局数据管理器，直接设置到主窗口
                     self.data = loaded_data
@@ -5008,7 +5008,7 @@ class ModernExcelAnalyzerGUI:
                 return False, message
 
         except Exception as e:
-            return False, f"加载失败: {str(e)}"
+            return False, f"Loading failed: {str(e)}"
 
     def get_chart_data_with_integration(self, x_col, y_col):
         """获取图表数据 - 集成版本"""
@@ -5046,30 +5046,30 @@ class ModernExcelAnalyzerGUI:
 
         # 数据菜单
         data_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="数据", menu=data_menu)
+        menubar.add_cascade(label="Data", menu=data_menu)
 
-        data_menu.add_command(label="加载Excel文件", command=self.load_file_dialog)
+        data_menu.add_command(label="Load Excel File", command=self.load_file_dialog)
         data_menu.add_separator()
-        data_menu.add_command(label="地理数据聚合", command=self.execute_geo_aggregation)
-        data_menu.add_command(label="重置到原始数据", command=self.reset_to_original_data)
+        data_menu.add_command(label="Geographic Gridding", command=self.execute_geo_aggregation)
+        data_menu.add_command(label="Reset to Original Data", command=self.reset_to_original_data)
         data_menu.add_separator()
-        data_menu.add_command(label="数据信息", command=self.show_data_info)
+        data_menu.add_command(label="Data Info", command=self.show_data_info)
 
     def load_file_dialog(self):
         """文件选择对话框"""
         from tkinter import filedialog, messagebox
 
         file_path = filedialog.askopenfilename(
-            title="选择Excel文件",
+            title="Select Excel File",
             filetypes=[("Excel files", "*.xlsx *.xls"), ("All files", "*.*")]
         )
 
         if file_path:
             success, message = self.load_excel_with_location_fix(file_path)
             if success:
-                messagebox.showinfo("成功", message)
+                messagebox.showinfo("Success", message)
             else:
-                messagebox.showerror("错误", message)
+                messagebox.showerror("Error", message)
 
     def show_data_info(self):
         """显示数据信息"""
@@ -5077,27 +5077,27 @@ class ModernExcelAnalyzerGUI:
             if hasattr(self, 'global_data_manager'):
                 status = self.global_data_manager.get_processing_status()
 
-                info_text = f"""数据状态信息:
+                info_text = f"""Data status:
 
-    是否有数据: {'是' if status['has_data'] else '否'}
-    是否有原始数据: {'是' if status['has_original'] else '否'}
-    处理步骤数: {status['history_count']}
+    Data loaded: {'Yes' if status['has_data'] else 'No'}
+    Original data: {'Yes' if status['has_original'] else 'No'}
+    Processing steps: {status['history_count']}
 
-    当前数据形状: {status['current_shape']}
-    原始数据形状: {status['original_shape']}
+    Current shape: {status['current_shape']}
+    Original shape: {status['original_shape']}
 
-    处理摘要: {self.global_data_manager.get_processing_summary()}
+    Summary: {self.global_data_manager.get_processing_summary()}
     """
 
                 from tkinter import messagebox
-                messagebox.showinfo("数据信息", info_text)
+                messagebox.showinfo("Data Info", info_text)
             else:
                 from tkinter import messagebox
-                messagebox.showinfo("数据信息", "全局数据管理器未初始化")
+                messagebox.showinfo("Data Info", "Data manager is not initialized.")
 
         except Exception as e:
             from tkinter import messagebox
-            messagebox.showerror("错误", f"获取数据信息失败: {str(e)}")
+            messagebox.showerror("Error", f"Failed to get data info: {str(e)}")
 
     def _handle_analysis_error_safe(self, progress_window, error_msg):
         """安全处理分析错误"""
@@ -5105,11 +5105,11 @@ class ModernExcelAnalyzerGUI:
             if progress_window and hasattr(progress_window, 'close'):
                 progress_window.close()
 
-            self.update_status(f"[Error] 边界处理分析错误")
+            self.update_status(f"[Error] Boundary analysis error")
             if hasattr(self, 'update_geochem_analysis_status'):
-                self.update_geochem_analysis_status("边界处理分析出错", "error")
+                self.update_geochem_analysis_status("Boundary analysis error", "error")
 
-            self.show_error_message('分析错误', f"边界处理分析失败:\n{error_msg}")
+            self.show_error_message('Analysis Error', f"Boundary analysis failed:\n{error_msg}")
 
         except Exception as e:
             print(f"[ERROR] 处理分析错误失败: {e}")

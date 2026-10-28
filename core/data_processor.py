@@ -248,7 +248,7 @@ class DataProcessor:
 
         try:
             if progress_callback:
-                progress_callback("正在尝试修复Location列读取...")
+                progress_callback("Trying to fix Location column reading...")
 
             # 方法1: 强制指定Location列为字符串
             print("[FIX-A1] 尝试强制Location列为字符串类型...")

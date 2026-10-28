@@ -87,7 +87,7 @@ class FileLoader:
                                 if message_text and message_text.strip():
                                     progress_window.update_progress(message_text)
                                 else:
-                                    progress_window.update_progress("正在处理数据...")
+                                    progress_window.update_progress("Processing data...")
                             else:
                                 print(f"[DEBUG] 进度更新: {message_text}")
                         except Exception as update_error:
@@ -109,7 +109,7 @@ class FileLoader:
                 # 立即更新进度窗口显示
                 if progress_window:
                     try:
-                        self.main_window.root.after(0, lambda: progress_window.update_progress("正在读取数据文件..."))
+                        self.main_window.root.after(0, lambda: progress_window.update_progress("Reading data file..."))
                     except:
                         pass
 
@@ -122,7 +122,7 @@ class FileLoader:
                 # 修复：立即处理异常，避免闭包问题
                 print(f"[ERROR] 文件加载异常: {load_exception}")
                 success = False
-                message = f"加载异常: {str(load_exception)}"
+                message = f"Loading error: {str(load_exception)}"
 
                 # 显示错误到进度窗口
                 try:

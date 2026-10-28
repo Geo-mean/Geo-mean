@@ -87,9 +87,9 @@ def lowess_bootstrap(x, y, frac=0.3, it=3, n_boot=500, ci=95,
     """
     x, y = _clean(x, y)
     if len(x) < 10:
-        raise ValueError(f"有效数据点只有 {len(x)} 个，至少需要 10 个才能做 LOWESS。")
+        raise ValueError(f"Only {len(x)} valid data points; LOWESS needs at least 10.")
     if not 0 < frac <= 1:
-        raise ValueError("frac 必须在 (0, 1] 之间。")
+        raise ValueError("frac must be in (0, 1].")
 
     grid = np.linspace(x.min(), x.max(), n_grid)
     y_fit = _fit(x, y, grid, frac, it)

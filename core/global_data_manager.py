@@ -40,7 +40,7 @@ class GlobalDataManager:
             # 重置处理历史
             self.processing_history = [{
                 'timestamp': datetime.now(),
-                'operation': f"加载原始数据: {source_info}",
+                'operation': f"Load original data: {source_info}",
                 'data_shape': data.shape,
                 'file_path': file_path
             }]
@@ -166,7 +166,7 @@ class GlobalDataManager:
             # 添加重置记录
             self.processing_history.append({
                 'timestamp': datetime.now(),
-                'operation': '重置到原始数据',
+                'operation': 'Reset to Original Data',
                 'data_shape': self.original_data.shape,
                 'rows_changed': 0
             })
@@ -176,7 +176,7 @@ class GlobalDataManager:
                 'current_rows': len(self.original_data),
                 'current_columns': len(self.original_data.columns),
                 'last_modified': datetime.now(),
-                'last_operation': '重置到原始数据'
+                'last_operation': 'Reset to Original Data'
             })
 
             print(f"[DEBUG-GLOBAL] 已重置到原始数据: {len(self.original_data)} 行")
@@ -278,7 +278,7 @@ class GlobalDataManager:
     def get_processing_summary(self):
         """获取处理摘要信息（用于显示）"""
         if not self.current_data is not None:
-            return "没有数据"
+            return "No data"
 
         summary = []
 
@@ -288,17 +288,17 @@ class GlobalDataManager:
 
             if current_rows != original_rows:
                 change = current_rows - original_rows
-                summary.append(f"数据行数: {original_rows} -> {current_rows} ({change:+d})")
+                summary.append(f"Rows: {original_rows} -> {current_rows} ({change:+d})")
             else:
-                summary.append(f"数据行数: {current_rows}")
+                summary.append(f"Rows: {current_rows}")
         else:
-            summary.append(f"now data: {len(self.current_data)} row")
+            summary.append(f"Rows: {len(self.current_data)}")
 
         # 添加最近的处理操作
         if len(self.processing_history) > 1:  # 除了加载操作
-            recent_ops = [h['operation'] for h in self.processing_history[-3:] if not h['operation'].startswith('加载')]
+            recent_ops = [h['operation'] for h in self.processing_history[-3:] if not h['operation'].startswith('Load')]
             if recent_ops:
-                summary.append(f"最近操作: {' -> '.join(recent_ops)}")
+                summary.append(f"Recent steps: {' -> '.join(recent_ops)}")
 
         return " | ".join(summary)
 
@@ -323,12 +323,12 @@ class GlobalDataManager:
     def validate_current_data(self):
         """验证当前数据的有效性"""
         if self.current_data is None:
-            return False, "当前数据为空"
+            return False, "Current data is empty"
 
         if self.current_data.empty:
-            return False, "当前数据为空DataFrame"
+            return False, "Current data is an empty table"
 
-        return True, "数据有效"
+        return True, "Data is valid"
 
     def get_numeric_columns(self):
         """获取当前数据的数值列"""

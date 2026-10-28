@@ -17,7 +17,7 @@ class DataPointInfo:
 
     def setup_info_panel(self):
         """设置信息面板"""
-        info_frame = tk.LabelFrame(self.parent, text="[Info] 选中数据点信息", bg='white',
+        info_frame = tk.LabelFrame(self.parent, text="[Info] Selected Points", bg='white',
                                    font=('Segoe UI', 10, 'bold'))
         info_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
 
@@ -41,7 +41,7 @@ class DataPointInfo:
 
         tk.Button(
             button_frame,
-            text="[Refresh] 刷新信息",
+            text="[Refresh] Refresh",
             command=self.refresh_info,
             bg='#059669',
             fg='white',
@@ -54,7 +54,7 @@ class DataPointInfo:
 
         tk.Button(
             button_frame,
-            text="[Clear] 清除选择",
+            text="[Clear] Clear Selection",
             command=self.clear_selection,
             bg='#dc2626',
             fg='white',
@@ -73,18 +73,18 @@ class DataPointInfo:
         self.info_text.delete(1.0, tk.END)
 
         if not self.tooltip.selected_points:
-            self.info_text.insert(tk.END, "[Help] 使用说明:\n\n")
-            self.info_text.insert(tk.END, "• 鼠标悬停在数据点上查看详细信息\n")
-            self.info_text.insert(tk.END, "• 点击数据点进行选择/取消选择\n")
-            self.info_text.insert(tk.END, "• 选中的数据点会以红色高亮显示\n")
-            self.info_text.insert(tk.END, "• 可同时选择多个数据点进行对比\n\n")
-            self.info_text.insert(tk.END, "[Status] 当前未选择任何数据点")
+            self.info_text.insert(tk.END, "[Help] How to use:\n\n")
+            self.info_text.insert(tk.END, "• Hover over a data point to see its details\n")
+            self.info_text.insert(tk.END, "• Click a data point to select or deselect it\n")
+            self.info_text.insert(tk.END, "• Selected points are highlighted in red\n")
+            self.info_text.insert(tk.END, "• You can select several points to compare them\n\n")
+            self.info_text.insert(tk.END, "[Status] No data points selected")
         else:
-            self.info_text.insert(tk.END, f"[Selected] 已选择 {len(self.tooltip.selected_points)} 个数据点:\n\n")
+            self.info_text.insert(tk.END, f"[Selected] {len(self.tooltip.selected_points)} data points:\n\n")
 
             for i, point_idx in enumerate(self.tooltip.selected_points):
                 row = self.tooltip.chart_data.iloc[point_idx]
-                self.info_text.insert(tk.END, f"数据点 #{point_idx + 1}:\n")
+                self.info_text.insert(tk.END, f"Data point #{point_idx + 1}:\n")
                 self.info_text.insert(tk.END, f"  {self.tooltip.x_col}: {row[self.tooltip.x_col]}\n")
                 self.info_text.insert(tk.END, f"  {self.tooltip.y_col}: {row[self.tooltip.y_col]:.6f}\n")
 
@@ -102,4 +102,4 @@ class DataPointInfo:
         self.tooltip.canvas.draw_idle()
 
         self.refresh_info()
-        messagebox.showinfo("清除完成", "已清除所有选中的数据点")
+        messagebox.showinfo("Cleared", "All selected data points have been cleared.")

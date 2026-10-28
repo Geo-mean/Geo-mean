@@ -97,7 +97,7 @@ def beautify_scientific_line_chart(ax, x_data, y_data, error_data=None, show_err
                       markeredgewidth=1.0,
                       alpha=0.95,
                       zorder=5,
-                      label='观测数据')
+                      label='Observed data')
 
         # [OK] 修复：使用真实的误差数据
         if show_error_bars and error_sorted is not None:
@@ -116,7 +116,7 @@ def beautify_scientific_line_chart(ax, x_data, y_data, error_data=None, show_err
                        elinewidth=1.5,
                        alpha=0.8,
                        zorder=4,
-                       label='2σ 不确定性')
+                       label='2σ uncertainty')
 
             print("[SUCCESS] 真实Bootstrap误差棒已添加")
 
@@ -133,13 +133,13 @@ def beautify_scientific_line_chart(ax, x_data, y_data, error_data=None, show_err
 
             raise ValueError(
 
-                "Bootstrap误差棒显示失败: 缺少真实的Bootstrap误差数据。"
+                "Failed to show Bootstrap error bars: Bootstrap error data is missing. "
 
-                "请确保移动窗口分析正确计算了Bootstrap统计量，"
+                "Please make sure the moving window analysis computed the Bootstrap statistics. "
 
-                "并且结果数据包含有效的'std_error'列。"
+                "and that the results include a valid 'std_error' column. "
 
-                "不允许使用估算误差作为替代方案。"
+                "Estimated errors are not used as a substitute."
 
             )
         else:
@@ -183,7 +183,7 @@ def beautify_scientific_scatter_chart(ax, x_data, y_data, show_colorbar=False, i
             try:
                 if hasattr(ax, 'figure') and ax.figure:
                     cbar = ax.figure.colorbar(scatter, ax=ax, shrink=0.8, aspect=25, pad=0.02)
-                    cbar.set_label('相对数值', fontsize=11, fontweight='normal', rotation=270, labelpad=18)
+                    cbar.set_label('Relative value', fontsize=11, fontweight='normal', rotation=270, labelpad=18)
                     cbar.ax.tick_params(labelsize=10, colors='#000000')
 
                     # 颜色条边框
@@ -409,7 +409,7 @@ class ChartController:
                     show_error_bars=is_analysis_result
                 )
                 if not success:
-                    raise ValueError("Bootstrap误差棒计算失败，请检查数据源和统计计算")
+                    raise ValueError("Bootstrap error bar calculation failed. Please check the data source and statistics.")
             elif chart_type_key == 'scatter':
                 # [OK] 修复：根据数据类型决定是否显示颜色条
                 success = beautify_scientific_scatter_chart(
@@ -722,12 +722,12 @@ class ChartController:
             'AGE': f"{language_manager.get_text('age_column', '年龄')} (Ma)",
             'Age': f"{language_manager.get_text('age_column', '年龄')} (Ma)",
             'age': f"{language_manager.get_text('age_column', '年龄')} (Ma)",
-            'mean': language_manager.get_text('calculated_mean', '计算平均值'),
+            'mean': language_manager.get_text('calculated_mean', 'Calculated mean'),
             'SIO2': 'SiO2 (%)',
             'TIO2': 'TiO2 (%)',
             'AL2O3': 'Al2O3 (%)',
             'ThU': 'Th/U',
-            'calculated_mean': '计算平均值'
+            'calculated_mean': 'Calculated mean'
         }
         return label_mapping.get(column_name, column_name)
 
@@ -850,8 +850,8 @@ class ChartController:
         """保存当前图表 - 兼容性方法"""
         if self.current_data is not None:
             try:
-                self._save_chart_data(self.current_data, "", "", "当前图表")
-                return True, language_manager.get_text('chart_saved', '图表数据已保存')
+                self._save_chart_data(self.current_data, "", "", "Current chart")
+                return True, language_manager.get_text('chart_saved', 'Chart data saved')
             except Exception as e:
                 return False, language_manager.get_text('save_error', f'保存失败: {str(e)}')
         else:

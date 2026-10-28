@@ -87,7 +87,7 @@ def show_lowess_chart(main_window, points: pd.DataFrame, result: pd.DataFrame, p
         content = tk.Frame(control_box, bg='#f8f9fa')
         content.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
 
-        title = tk.Label(header, text=f"[Control] {text('axis_length_control', '轴长度控制')}",
+        title = tk.Label(header, text=f"[Control] {text('axis_length_control', 'Axis Length Control')}",
                          bg='#f8f9fa', font=('Arial', 12, 'bold'), fg='#1e40af')
         visible = tk.BooleanVar(value=True)
 
@@ -95,17 +95,17 @@ def show_lowess_chart(main_window, points: pd.DataFrame, result: pd.DataFrame, p
             if visible.get():
                 content.pack_forget()
                 title.pack_forget()
-                toggle_btn.config(text=f"< {text('show_control', '显示控制')}")
+                toggle_btn.config(text=f"< {text('show_control', 'Show Controls')}")
                 control_box.config(width=100)
                 visible.set(False)
             else:
                 title.pack(side=tk.LEFT, padx=5, pady=5)
                 content.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
-                toggle_btn.config(text=f"> {text('hide_control', '隐藏控制')}")
+                toggle_btn.config(text=f"> {text('hide_control', 'Hide Controls')}")
                 control_box.config(width=330)
                 visible.set(True)
 
-        toggle_btn = tk.Button(header, text=f"> {text('hide_control', '隐藏控制')}",
+        toggle_btn = tk.Button(header, text=f"> {text('hide_control', 'Hide Controls')}",
                                command=toggle, bg='#3b82f6', fg='white', relief='flat',
                                font=('Arial', 9), cursor='hand2')
         toggle_btn.pack(side=tk.RIGHT, padx=(0, 5), pady=5)

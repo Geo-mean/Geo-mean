@@ -189,7 +189,7 @@ class GeochemicalFilterManager:
         # ========== 测试标识结束 ==========
         try:
             if progress_callback:
-                progress_callback("开始MATLAB精确地球化学筛选...")
+                progress_callback("Starting geochemical filtering...")
 
             # 复制数据
             filtered = self.original_data.copy()
@@ -215,12 +215,12 @@ class GeochemicalFilterManager:
             for key in required_mappings.keys():
                 if key not in self.column_mapping:
                     print(f"[ERROR] 缺少必需的列映射: {key}")
-                    raise ValueError(f"缺少必需的列映射: {key}")
+                    raise ValueError(f"Missing required column mapping: {key}")
 
                 actual_col = self.column_mapping[key]
                 if actual_col not in filtered.columns:
                     print(f"[ERROR] 列不存在于数据中: {actual_col}")
-                    raise ValueError(f"列不存在于数据中: {actual_col}")
+                    raise ValueError(f"Column not found in data: {actual_col}")
 
                 # 确保列是数值型
                 filtered[actual_col] = pd.to_numeric(filtered[actual_col], errors='coerce')
@@ -463,7 +463,7 @@ class GeochemicalFilterManager:
             self.filtered_data = result_data
 
             if progress_callback:
-                progress_callback(f"MATLAB精确筛选完成: {initial_valid} -> {step5_valid} 有效样本")
+                progress_callback(f"Geochemical filtering completed: {initial_valid} -> {step5_valid} valid samples")
 
             # 打印与MATLAB期望值的对比
             expected_values = [12811, 10811, 5908, 5455, 2458]
@@ -482,7 +482,7 @@ class GeochemicalFilterManager:
             error_msg = f"MATLAB精确地球化学筛选失败: {str(e)}"
             print(f"[ERROR] {error_msg}")
             if progress_callback:
-                progress_callback(f"错误: {error_msg}")
+                progress_callback(f"Error: {error_msg}")
             raise
 
     def apply_outlier_removal(self,
@@ -507,13 +507,13 @@ class GeochemicalFilterManager:
                 self.filtered_data = self.original_data.copy()
 
             if progress_callback:
-                progress_callback("开始异常值检测和移除...")
+                progress_callback("Starting outlier detection and removal...")
 
             # 获取有效数据
             valid_data = self.filtered_data[target_column].dropna()
 
             if len(valid_data) == 0:
-                raise ValueError(f"列 '{target_column}' 没有有效数据进行异常值检测")
+                raise ValueError(f"Column '{target_column}' has no valid data for outlier detection")
 
             before_count = len(valid_data)
 
@@ -553,7 +553,7 @@ class GeochemicalFilterManager:
                   f"(移除 {removed_count}, {removed_count / before_count * 100:.1f}%)")
 
             if progress_callback:
-                progress_callback(f"异常值移除完成，移除了 {removed_count} 个异常值")
+                progress_callback(f"Outlier removal completed: {removed_count} outliers removed")
 
             return self.filtered_data
 
@@ -561,7 +561,7 @@ class GeochemicalFilterManager:
             error_msg = f"异常值移除失败: {str(e)}"
             print(f"[ERROR] {error_msg}")
             if progress_callback:
-                progress_callback(f"错误: {error_msg}")
+                progress_callback(f"Error: {error_msg}")
             raise
 
     def get_filter_statistics(self) -> Dict:
@@ -794,7 +794,7 @@ def create_filter_manager_from_processor(data_processor) -> GeochemicalFilterMan
         GeochemicalFilterManager实例
     """
     if data_processor.data is None:
-        raise ValueError("DataProcessor中没有数据")
+        raise ValueError("No data in DataProcessor")
 
     filter_manager = GeochemicalFilterManager(data_processor.data)
 
