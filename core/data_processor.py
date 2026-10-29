@@ -43,9 +43,8 @@ class DataProcessor:
                 progress_callback(size_msg)
 
             # 2. 根据文件大小选择处理方式
-            if file_size > 100:
-                return self._load_large_file(file_path, progress_callback)
-            elif file_size > 10:
+            # 大文件也完整读取全部行（不再只读取前 10000 行样本）
+            if file_size > 10:
                 return self._load_medium_file(file_path, progress_callback)
             else:
                 return self._load_small_file(file_path, progress_callback)
@@ -109,13 +108,9 @@ class DataProcessor:
             encoding, sep = self._detect_csv_encoding_and_sep(file_path)
             print(f"[DEBUG] CSV检测结果: encoding={encoding}, sep='{sep}'")
 
-            is_large_file = file_size > 100
-
             try:
+                # 完整读取全部行，不做抽样
                 read_kwargs = {'encoding': encoding, 'sep': sep}
-                if is_large_file:
-                    # 超大CSV先只读取一部分样本，避免卡死界面
-                    read_kwargs['nrows'] = 10000
 
                 try:
                     # 优先强制Location列为字符串，避免被误读成数值
@@ -158,12 +153,7 @@ class DataProcessor:
                     progress_callback(sample_msg)
                 self.data = self.data.sample(n=self.sample_size, random_state=42).reset_index(drop=True)
 
-            complete_msg = language_manager.get_text(
-                'load_complete',
-                f'Successfully loaded data， {self.total_rows} row，{len(self.data.columns)} col')
-            if is_large_file:
-                complete_msg += language_manager.get_text(
-                    'csv_large_file_sampled', '（文件较大，仅读取前10000行样本）')
+            complete_msg = language_manager.get_text('load_complete', self.total_rows, len(self.data.columns))
             if progress_callback:
                 progress_callback(complete_msg)
 
@@ -396,8 +386,7 @@ class DataProcessor:
             self.total_rows = len(self.data)
 
             if progress_callback:
-                complete_msg = language_manager.get_text('load_complete',
-                                                         f'Successfully loaded data， {self.total_rows} row，{len(self.data.columns)} col')
+                complete_msg = language_manager.get_text('load_complete', self.total_rows, len(self.data.columns))
                 progress_callback(complete_msg)
 
             return True, f"Successfully loaded data， {self.total_rows} row，{len(self.data.columns)} col"
@@ -510,8 +499,7 @@ class DataProcessor:
             self.data = self.data.sample(n=self.sample_size, random_state=42).reset_index(drop=True)
 
         if progress_callback:
-            complete_msg = language_manager.get_text('load_complete',
-                                                    f'Successfully loaded data， {self.total_rows} row {len(self.data)} row，{len(self.data.columns)} col')
+            complete_msg = language_manager.get_text('load_complete', self.total_rows, len(self.data.columns))
             progress_callback(complete_msg)
 
         return True, f"Successfully loaded data， {self.total_rows} row（ {len(self.data)} row），{len(self.data.columns)} col"
@@ -555,7 +543,7 @@ class DataProcessor:
             if progress_callback:
                 error_msg = language_manager.get_text('large_file_error', f'large_file_error: {str(e)}')
                 progress_callback(error_msg)
-            return False, f"large_file_error: {str(e)}."
+            return False, f"Failed to load large file: {str(e)}"
 
     def _optimize_dtypes(self, df, progress_callback=None):
         """优化数据类型 - 保护Location列版本"""

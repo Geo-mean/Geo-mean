@@ -11,11 +11,14 @@ from typing import Dict, List, Optional, Tuple
 class SimpleMovingWindowDialog:
     """Simple Moving Window Analysis Dialog"""
 
-    def __init__(self, parent, numeric_columns: List[str], title: str = "Moving Window Analysis"):
+    def __init__(self, parent, numeric_columns: List[str], title: str = "Moving Window Analysis",
+                 show_method_options: bool = True):
         self.parent = parent
         self.numeric_columns = numeric_columns
         self.result = None
         self.window_title = title
+        # False for analyses that ignore boundary mode / analysis method (e.g. Bootstrap Median Window)
+        self.show_method_options = show_method_options
 
         # Create dialog window
         self.dialog = tk.Toplevel(parent)
@@ -98,13 +101,22 @@ class SimpleMovingWindowDialog:
         self.create_window_parameters(main_frame)
 
         # 4. Boundary mode selection
-        self.create_boundary_mode(main_frame)
+        if self.show_method_options:
+            self.create_boundary_mode(main_frame)
 
         # 5. Minimum sample size settings
         self.create_min_samples_section(main_frame)
 
         # 6. Analysis method selection
-        self.create_analysis_method(main_frame)
+        if self.show_method_options:
+            self.create_analysis_method(main_frame)
+        else:
+            tk.Label(
+                main_frame,
+                text="Each window uses all samples within its range. The median and its error\n"
+                     "are estimated from 10,000 bootstrap resamples.",
+                font=('Arial', 9), fg='#666666', justify=tk.LEFT
+            ).pack(anchor='w', pady=(0, 15))
 
         # Auto-select columns
         self.auto_select_columns()
@@ -448,7 +460,9 @@ class SimpleMovingWindowDialog:
 
         warning_messages = []
 
-        if analysis_method == "quick" and min_samples > 10:
+        if not self.show_method_options:
+            pass
+        elif analysis_method == "quick" and min_samples > 10:
             warning_messages.append("High minimum sample size may be unnecessary for quick analysis")
 
         if analysis_method == "bootstrap" and min_samples < 5:
@@ -476,10 +490,12 @@ class SimpleMovingWindowDialog:
 
 
 # Export function - maintain original function name for compatibility
-def show_enhanced_moving_window_dialog(parent, numeric_columns: List[str], title: str = "Moving Window Analysis") -> Optional[Dict]:
+def show_enhanced_moving_window_dialog(parent, numeric_columns: List[str], title: str = "Moving Window Analysis",
+                                       show_method_options: bool = True) -> Optional[Dict]:
     """Show simple moving window analysis dialog"""
     try:
-        dialog = SimpleMovingWindowDialog(parent, numeric_columns, title=title)
+        dialog = SimpleMovingWindowDialog(parent, numeric_columns, title=title,
+                                          show_method_options=show_method_options)
         parent.wait_window(dialog.dialog)
         return dialog.get_result()
     except Exception as e:

@@ -1305,7 +1305,7 @@ class ModernExcelAnalyzerGUI:
             self.update_status(f"[OK] {processing_msg}")
 
             # Display detailed processing results
-            result_message = f"""segmented_outlier_processing_complete!
+            result_message = f"""Segmented outlier processing complete!
 
     Target Column: {target_column}
     Processing Method: {processing_method}
@@ -2057,7 +2057,8 @@ class ModernExcelAnalyzerGUI:
 
             # Show parameter dialog (reuse Moving Average dialog with Bootstrap title)
             from ui.moving_window_dialog import show_enhanced_moving_window_dialog
-            params = show_enhanced_moving_window_dialog(self.root, numeric_columns, title="Bootstrap Median Window Analysis")
+            params = show_enhanced_moving_window_dialog(self.root, numeric_columns, title="Bootstrap Median Window Analysis",
+                                                        show_method_options=False)
 
             if not params:
                 return
