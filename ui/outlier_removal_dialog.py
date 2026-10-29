@@ -815,8 +815,7 @@ Note: This is only a preview result, click "Apply Processing" to actually execut
             confirm_message = f"Confirm Outlier Removal?\n\n" \
                               f"Target Column: {column}\n" \
                               f"Method: {method_names.get(method, method)}\n" \
-                              f"Processing Range: Current data in data manager\n\n" \
-                              f"This operation will remove detected outliers and cannot be undone"
+                              f"Processing Range: Current data in data manager"
 
             if not self.show_custom_confirm_dialog("Confirm", confirm_message):
                 return

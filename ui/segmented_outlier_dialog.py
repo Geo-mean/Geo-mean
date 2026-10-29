@@ -631,8 +631,7 @@ class SegmentedOutlierDialog:
             f"Are you sure you want to process all {len(self.segments)} segments?\n\n"
             f"Target Column: {target_column}\n"
             f"Age Range: {self.start_age_var.get()}-{self.end_age_var.get()} Ma\n"
-            f"Detection Method: {self.method_var.get()}\n"
-            f"This operation cannot be undone"
+            f"Detection Method: {self.method_var.get()}"
         )
 
         if not result:

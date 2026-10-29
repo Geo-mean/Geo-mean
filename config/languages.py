@@ -314,7 +314,7 @@ class LanguageManager:
                 'preview_note': 'Note: This is only a preview result, click "Apply Removal" to actually execute outlier removal',
                 'confirm_outlier_removal': 'Confirm Outlier Removal',
                 'target_column': 'Target Column',
-                'outlier_removal_warning': 'This operation will remove detected outliers and cannot be undone',
+                'outlier_removal_warning': 'This operation will remove detected outliers',
                 'apply_removal_failed': 'Failed to apply outlier removal',
                 'dialog_error': 'Dialog error',
                 'original_samples': 'Original Samples',
