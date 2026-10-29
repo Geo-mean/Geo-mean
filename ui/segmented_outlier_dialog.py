@@ -55,6 +55,7 @@ class SegmentedOutlierDialog:
         # 分段配置
         self.segments = []
         self.segment_results = {}
+        self.removed_rows = {}  # segment id -> rows removed from that segment (for Reset)
 
         # 创建对话框
         self.dialog = tk.Toplevel(parent)
@@ -431,9 +432,12 @@ class SegmentedOutlierDialog:
                 messagebox.showerror("Error", f"No valid data in specified age range ({start_age:.1f}-{end_age:.1f} Ma)")
                 return
 
-            # 清空现有分段
+            # 清空现有分段（先把已删除的样品放回去，避免重新分段后丢失数据）
+            for rows in self.removed_rows.values():
+                self.data = pd.concat([self.data, rows]).sort_index()
             self.segments = []
             self.segment_results = {}
+            self.removed_rows = {}
 
             # 清空树形控件
             for item in self.segments_tree.get_children():
@@ -504,11 +508,37 @@ class SegmentedOutlierDialog:
             return self.segments[segment_index]
         return None
 
+    def _get_percentile_range(self):
+        """读取并检查百分位数范围；只在 percentile 方法下需要。无效时弹出提示并返回 None"""
+        try:
+            lower_pct = float(self.lower_percentile_var.get())
+            upper_pct = float(self.upper_percentile_var.get())
+        except ValueError:
+            messagebox.showwarning("Warning", "Please enter the lower and upper percentiles (e.g. 2.5 and 97.5)")
+            return None
+        if not (0 <= lower_pct < upper_pct <= 100):
+            messagebox.showwarning("Warning", "Percentiles must satisfy 0 <= lower < upper <= 100")
+            return None
+        return lower_pct, upper_pct
+
+    def _check_method_inputs(self):
+        """处理前检查当前方法所需的输入，返回 True 表示可以处理"""
+        if self.method_var.get() == "percentile":
+            return self._get_percentile_range() is not None
+        return True
+
     def _process_selected_segment(self):
         """处理选中的分段"""
         segment = self._get_selected_segment()
         if not segment:
             messagebox.showwarning("Warning", "Please select a segment first")
+            return
+
+        if segment['processed']:
+            messagebox.showinfo("Info", "This segment has already been processed. Reset it first to process it again.")
+            return
+
+        if not self._check_method_inputs():
             return
 
         self._process_segment(segment)
@@ -549,10 +579,10 @@ class SegmentedOutlierDialog:
 
             # 计算异常值阈值
             method = self.method_var.get()
-            lower_pct = float(self.lower_percentile_var.get())
-            upper_pct = float(self.upper_percentile_var.get())
 
             if method == "percentile":
+                lower_pct = float(self.lower_percentile_var.get())
+                upper_pct = float(self.upper_percentile_var.get())
                 lower_bound = safe_percentile(segment_data, lower_pct, 'linear')
                 upper_bound = safe_percentile(segment_data, upper_pct, 'linear')
             elif method == "iqr":
@@ -579,6 +609,7 @@ class SegmentedOutlierDialog:
             print(f"  删除前数据行数: {len(self.data)}")
             print(f"  检测到异常值行数: {len(outlier_indices)}")
 
+            self.removed_rows[segment['id']] = self.data.loc[outlier_indices].copy()
             self.data = self.data.drop(outlier_indices).copy()
 
             print(f"  删除后数据行数: {len(self.data)}")
@@ -613,6 +644,7 @@ class SegmentedOutlierDialog:
 
         except Exception as e:
             print(f"[ERROR] 处理分段时出错: {str(e)}")
+            messagebox.showerror("Error", f"Error processing segment {segment['start']:.1f}-{segment['end']:.1f}: {str(e)}")
 
     def _process_all_segments(self):
         """处理所有分段"""
@@ -623,6 +655,9 @@ class SegmentedOutlierDialog:
         target_column = self.target_col_var.get()
         if not target_column:
             messagebox.showwarning("Warning", "Please select target column")
+            return
+
+        if not self._check_method_inputs():
             return
 
         # 确认处理
@@ -681,6 +716,11 @@ class SegmentedOutlierDialog:
         """重置单个分段"""
         try:
             if segment['id'] in self.segment_results:
+                # 把这个分段删掉的样品放回数据中（按原始行顺序）
+                removed = self.removed_rows.pop(segment['id'], None)
+                if removed is not None and len(removed) > 0:
+                    self.data = pd.concat([self.data, removed]).sort_index()
+
                 segment['processed'] = False
                 segment['outliers_removed'] = 0
 
