@@ -106,6 +106,11 @@ class SimpleGeoDataProcessor:
 
         # 转换并验证经度
         lon_data = pd.to_numeric(clean_data[lon_col], errors='coerce')
+        # 0~360° 写法的经度换算为 -180~180°（如 254.62 -> -105.38），否则这些样品会被当作无效数据删除
+        east360 = (lon_data > 180) & (lon_data <= 360)
+        if east360.any():
+            print(f"[VALIDATION] {int(east360.sum())} 个样品经度为 0~360° 写法，已换算为 -180~180°")
+            lon_data = lon_data.where(~east360, lon_data - 360)
         valid_lon = (lon_data >= -180) & (lon_data <= 180) & lon_data.notna()
 
         # 转换并验证年龄
@@ -226,9 +231,9 @@ class SimpleGeoDataProcessor:
                 if data_type == 'age':
                     return math.ceil(value / 10) * 10  # 年龄向上取整
                 else:
-                    return round(value / 10) * 10  # 坐标四舍五入
+                    return math.floor(round(value / 10, 6) + 0.5) * 10  # 坐标四舍五入（不用round，避免银行家舍入）
             elif agg_type == "divide_100":
-                return round(value / 100) * 100
+                return math.floor(round(value / 100, 6) + 0.5) * 100
             else:  # no_change or custom
                 return float(value)
         except (ValueError, OverflowError):
@@ -563,6 +568,11 @@ class EnhancedGeoDataProcessor:
         valid_lat = (lat_data >= -90) & (lat_data <= 90) & lat_data.notna()
 
         lon_data = pd.to_numeric(clean_data[lon_col], errors='coerce')
+        # 0~360° 写法的经度换算为 -180~180°（如 254.62 -> -105.38），否则这些样品会被当作无效数据删除
+        east360 = (lon_data > 180) & (lon_data <= 360)
+        if east360.any():
+            print(f"[VALIDATION] {int(east360.sum())} 个样品经度为 0~360° 写法，已换算为 -180~180°")
+            lon_data = lon_data.where(~east360, lon_data - 360)
         valid_lon = (lon_data >= -180) & (lon_data <= 180) & lon_data.notna()
 
         age_data = pd.to_numeric(clean_data[age_col], errors='coerce')
@@ -813,10 +823,10 @@ class EnhancedGeoDataProcessor:
                 elif strategy == 'round_down':
                     return math.floor(value / precision) * precision
                 else:  # round_nearest
-                    return round(value / precision) * precision
+                    return round(math.floor(round(value / precision, 6) + 0.5) * precision, 10)
             else:
                 # 坐标使用标准的四舍五入
-                return round(value / precision) * precision
+                return round(math.floor(round(value / precision, 6) + 0.5) * precision, 10)
         except (ValueError, OverflowError):
             print(f"[WARNING] Custom precision rule application failed，value: {value}, precision: {precision}")
             return np.nan

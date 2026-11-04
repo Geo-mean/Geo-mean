@@ -609,9 +609,7 @@ class DataProcessor:
                 if col != 'Location':
                     df[col] = pd.to_numeric(df[col], downcast='integer')
 
-            for col in df.select_dtypes(include=['float64']).columns:
-                if col != 'Location':
-                    df[col] = pd.to_numeric(df[col], downcast='float')
+            # 小数列保持 float64：降为 float32 会产生 -56.04 -> -56.0400009 这类误差，影响网格划分和导出
 
             # 对于字符串列，如果重复率高就转为category（但保持Location为字符串）
             for col in df.select_dtypes(include=['object']).columns:
