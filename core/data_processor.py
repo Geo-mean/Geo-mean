@@ -592,6 +592,9 @@ class DataProcessor:
                     except:
                         continue
 
+            # 按内容识别数值列：不依赖列名名单，避免 Cs、Rb、同位素比值等列被漏掉
+            df = self._coerce_numeric_by_content(df)
+
             # 恢复Location列数据
             if location_col_data is not None and 'Location' in df.columns:
                 df['Location'] = location_col_data
@@ -628,6 +631,36 @@ class DataProcessor:
 
         return df
 
+    # 视为"空值"的占位符：空格、单独的点、横线、常见缺测标记
+    _NULL_TOKENS = {'', '.', '-', '--', '\u2014', 'nan', 'NaN', 'None', 'NA', 'N/A',
+                    'n.a.', 'n.d.', 'nd', 'bdl', 'b.d.l.'}
+    # 列名含这些关键词的列视为文本列，不做转换（防止样品编号等被转成数字）
+    _TEXT_COL_KEYWORDS = ('id', 'sample', 'name', 'ref', 'note', 'code',
+                          'location', 'country', 'region', 'method', 'material')
+
+    def _coerce_numeric_by_content(self, df, threshold=0.8):
+        """非空值中 80% 以上能转成数字的列，整列转为数值；占位符视为缺失值"""
+        for col in df.columns:
+            if pd.api.types.is_numeric_dtype(df[col]):
+                continue
+            if any(k in str(col).lower() for k in self._TEXT_COL_KEYWORDS):
+                continue
+            s = (df[col].astype(str)
+                 .str.replace('\xa0', ' ', regex=False)
+                 .str.replace('\u3000', ' ', regex=False)
+                 .str.strip())
+            s = s.mask(s.isin(self._NULL_TOKENS) | df[col].isna())
+            n_valid = s.notna().sum()
+            if n_valid == 0:
+                continue
+            conv = pd.to_numeric(s, errors='coerce')
+            if conv.notna().sum() / n_valid >= threshold:
+                n_lost = n_valid - conv.notna().sum()
+                if n_lost:
+                    print(f"[NUMERIC] 列 '{col}' 转为数值，{n_lost} 个无法识别的值置为空")
+                df[col] = conv
+        return df
+
     def _is_likely_numeric_column(self, col_name):
         """判断列名是否可能是数值列 - 精确匹配"""
         numeric_keywords = [
@@ -635,7 +668,7 @@ class DataProcessor:
             'MGO', 'CAO', 'NA2O', 'K2O', 'P2O5', 'LOI', 'MNO',
             'LATITUDE', 'LONGITUDE'
         ]
-        col_upper = col_name.upper()
+        col_upper = str(col_name).upper()
         # 精确匹配，避免 'ER' 匹配到 'REFERENCE' 这类误判
         return col_upper in numeric_keywords
 
@@ -661,4 +694,4 @@ class DataProcessor:
                 'file_path': self.file_path,
                 'memory_usage': self.data.memory_usage(deep=True).sum() / 1024 / 1024  # MB
             }
-        return None
+        return None
